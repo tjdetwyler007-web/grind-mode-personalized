@@ -263,6 +263,52 @@
   .plan-summary-row{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); padding:6px 0; border-bottom:1px dashed var(--line);}
   .plan-summary-row:last-child{border-bottom:none;}
   .plan-summary-row b{color:var(--ink);}
+
+  /* --- Light theme override --- */
+  html[data-theme="light"]{
+    --bg:#F4F2EA; --bg-2:#EAE7DA; --card:#FFFFFF; --line:#DDD9C8;
+    --ink:#17171B; --muted:#6E6C63; --gold:#A6740A; --gold-dim:#E8D9B0;
+    --push:#D6261A; --push-bg:#FFECEA; --push-line:#F3B7AE;
+    --pull:#0090AD; --pull-bg:#E6F7FB; --pull-line:#AEE0EC;
+    --legs:#8B2FC9; --legs-bg:#F5E9FC; --legs-line:#D9B8EC;
+    --good:#1FAE4B; --good-bg:#E4F7EA; --bad:#D6234F; --bad-bg:#FBE4EA;
+  }
+  .ring-track{stroke:var(--line);}
+  .ring-fill{stroke:var(--gold);}
+
+  .theme-toggle{width:28px; height:28px; border-radius:8px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .theme-toggle svg{width:15px; height:15px; stroke:var(--gold);}
+
+  /* --- Account page --- */
+  .account-card{background:var(--card); border:1.5px solid var(--gold-dim); border-radius:16px; padding:18px; margin-bottom:16px;}
+  .account-row{display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px dashed var(--line); font-size:12.5px; color:var(--muted);}
+  .account-row:last-child{border-bottom:none;}
+  .account-row b{color:var(--ink); font-weight:800; text-align:right;}
+  .account-actions{display:flex; flex-direction:column; gap:10px; margin-top:6px;}
+  .btn-secondary{width:100%; background:var(--bg-2); border:1.5px solid var(--line); color:var(--ink); font-size:13px; font-weight:700; padding:12px; border-radius:12px; cursor:pointer; font-family:'Teko',sans-serif; letter-spacing:0.3px; text-transform:uppercase;}
+  .btn-danger{width:100%; background:var(--bad-bg); border:1.5px solid var(--bad); color:var(--bad); font-size:13px; font-weight:700; padding:12px; border-radius:12px; cursor:pointer; font-family:'Teko',sans-serif; letter-spacing:0.3px; text-transform:uppercase;}
+  .confirm-box{background:var(--bad-bg); border:1.5px solid var(--bad); border-radius:12px; padding:14px; margin-top:10px; font-size:12.5px; color:var(--ink); line-height:1.6;}
+  .confirm-box .row{display:flex; gap:8px; margin-top:10px;}
+  .confirm-box button{flex:1; padding:10px; border-radius:10px; font-family:'Teko',sans-serif; font-size:13px; text-transform:uppercase; cursor:pointer; border:1.5px solid var(--line); background:var(--bg-2); color:var(--ink);}
+  .confirm-box button.danger{background:var(--bad); border-color:var(--bad); color:#fff; font-weight:800;}
+
+  /* --- Ask Coach / AI panels --- */
+  .ai-card{background:var(--card); border:1.5px solid var(--gold-dim); border-radius:16px; padding:16px 18px; margin-bottom:18px;}
+  .ai-card h3{font-family:'Bungee',sans-serif; font-size:15px; color:var(--gold); margin-bottom:4px;}
+  .ai-sub{font-size:11px; color:var(--muted); line-height:1.5; margin-bottom:12px;}
+  .ai-input-row{display:flex; gap:8px;}
+  .ai-input-row textarea, .ai-input-row input{flex:1; background:var(--bg-2); border:1.5px solid var(--line); border-radius:8px; color:var(--ink); font-family:'Inter',sans-serif; font-size:13px; padding:9px 10px; resize:none;}
+  .ai-input-row textarea:focus, .ai-input-row input:focus{outline:none; border-color:var(--gold);}
+  .ai-btn{background:var(--gold); border:none; color:#0A0A0C; font-weight:800; font-size:12px; padding:0 16px; border-radius:8px; cursor:pointer; text-transform:uppercase; font-family:'Teko',sans-serif;}
+  .ai-btn:disabled{opacity:0.5; cursor:default;}
+  .ai-answer{margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); font-size:12.5px; line-height:1.6; color:var(--ink); white-space:pre-wrap;}
+  .ai-add-row{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
+  .ai-add-row label{font-size:9.5px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); font-weight:700; display:block; margin-bottom:6px;}
+
+  /* --- Swipe chevrons --- */
+  .swipe-nav{display:flex; justify-content:space-between; margin-bottom:8px;}
+  .swipe-chevron{font-size:11px; color:var(--muted); font-weight:700; cursor:pointer; padding:4px 8px;}
+  .swipe-chevron.disabled{opacity:0.3; cursor:default;}
 </style>
 </head>
 <body>
@@ -278,6 +324,36 @@
 </div>
 
 <script>
+/* ============================== THEME (applied immediately, before any network calls) ============================== */
+(function(){
+  const stored = localStorage.getItem('grindmode-theme');
+  if(stored === 'light') document.documentElement.dataset.theme = 'light';
+})();
+function toggleTheme(){
+  const isLight = document.documentElement.dataset.theme === 'light';
+  if(isLight){ delete document.documentElement.dataset.theme; localStorage.setItem('grindmode-theme','dark'); }
+  else{ document.documentElement.dataset.theme = 'light'; localStorage.setItem('grindmode-theme','light'); }
+  render();
+}
+function themeToggleSvg(){
+  const isLight = document.documentElement.dataset.theme === 'light';
+  return isLight
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+}
+
+/* Capture the URL hash BEFORE supabase-js parses/clears it, so we can tell
+   whether this page load is the result of a just-clicked confirmation link. */
+const arrivedViaEmailConfirm = /type=signup/.test(window.location.hash) || /type=signup/.test(window.location.search);
+
+function showToast(message){
+  const el = document.createElement('div');
+  el.textContent = message;
+  el.style.cssText = 'background:var(--good-bg); border:1.5px solid var(--good); color:var(--ink); border-radius:10px; padding:11px 14px; margin-bottom:14px; font-size:13px; font-weight:600;';
+  root().prepend(el);
+  setTimeout(()=>{ el.remove(); }, 4000);
+}
+
 /* ============================== SUPABASE ============================== */
 const SUPABASE_URL = 'https://yxpqjmkxeocbuutrxxbt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4cHFqbWt4ZW9jYnV1dHJ4eGJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNjg3NzEsImV4cCI6MjEwMTk0NDc3MX0.ZjIxWg8bid_6ZvyJrfLWzhz7lm9WCMGuWd4d4HpGbLM';
@@ -471,6 +547,8 @@ const GOAL_LABEL = {fat_loss:'Lose Fat', muscle_gain:'Build Muscle', recomp:'Bod
 const EQUIP_LABEL = {full_gym:'Full Gym', home_dumbbells:'Home (Dumbbells)', bodyweight:'Bodyweight Only'};
 const SPLIT_LABEL = {3:'3-Day Full Body', 4:'4-Day Upper/Lower', 5:'5-Day Upper/Lower/Push/Pull/Legs', 6:'6-Day Push/Pull/Legs'};
 const DIET_LABEL = {none:'No Restrictions', vegetarian:'Vegetarian', vegan:'Vegan', dairy_free:'Dairy-Free', gluten_free:'Gluten-Free'};
+const EXPERIENCE_LABEL = {beginner:'Beginner', intermediate:'Intermediate', advanced:'Advanced'};
+const ACTIVITY_LABEL = {sedentary:'Sedentary', light:'Lightly Active', moderate:'Moderately Active', very:'Very Active'};
 
 function computeMacros(profile){
   const maintenance = profile.currentWeight * (ACTIVITY_MULT[profile.activity]||14.5);
@@ -531,6 +609,9 @@ let qIndex = 0, qAnswers = {};
 let activeDay = 1;
 let pendingEmail = '';
 let saveStatus = 'idle', lastSavedAt = null;
+let coachAnswer = '', coachLoading = false;
+let addExLoading = false, addExError = '';
+let deleteConfirmOpen = false;
 
 const DAY_LABELS_GENERIC = null; // day tabs no longer map to weekdays — plans are user-scheduled
 
@@ -542,7 +623,10 @@ async function handleSignUp(email, password, confirmPw){
   if(!isValidEmail(email)){ showError('Enter a valid email address.'); return; }
   if(password.length < 6){ showError('Password must be at least 6 characters.'); return; }
   if(password !== confirmPw){ showError("Passwords don't match."); return; }
-  const {data, error} = await sb.auth.signUp({email, password});
+  const {data, error} = await sb.auth.signUp({
+    email, password,
+    options: { emailRedirectTo: window.location.origin + window.location.pathname }
+  });
   if(error){ showError(error.message); return; }
   if(data.session){ currentUser = data.session.user; await loadProfileAndData(); return; }
   pendingEmail = email;
@@ -655,15 +739,39 @@ async function saveAll(){
   }
 }
 
-async function manualSave(){
-  const btn = document.getElementById('saveEntryBtn');
-  if(!btn) return;
-  btn.disabled = true;
-  const orig = btn.textContent;
-  btn.textContent = 'Saving…';
-  await saveAll();
-  btn.textContent = orig;
-  btn.disabled = false;
+/* ============================== CLAUDE AI ============================== */
+// Calls a Supabase Edge Function ("ask-claude") that holds the Anthropic API
+// key server-side. Never call api.anthropic.com directly from this file —
+// there is no way to keep a key secret in a public GitHub Pages file.
+async function callClaude(mode, prompt, context){
+  const {data, error} = await sb.functions.invoke('ask-claude', { body: {mode, prompt, context} });
+  if(error) throw new Error(error.message || 'Could not reach the AI assistant.');
+  if(data && data.error) throw new Error(data.error);
+  if(!data || typeof data.text !== 'string') throw new Error('Unexpected response from the AI assistant.');
+  return data.text;
+}
+
+function stripCodeFences(text){
+  return text.replace(/^```[a-z]*\n?/i, '').replace(/```\s*$/,'').trim();
+}
+
+/* ============================== ACCOUNT DELETION ============================== */
+// This removes the user's own data (profile, plan, tracker history) via RLS —
+// safe to do with just the public key. It does NOT remove the underlying
+// Supabase Auth login credential itself; that requires a service-role action,
+// which is a separate, optional server-side step (see setup notes).
+async function confirmDeleteData(){
+  try{
+    await sb.from('user_data').delete().eq('id', currentUser.id);
+    await sb.from('user_profiles').delete().eq('id', currentUser.id);
+    await sb.auth.signOut();
+    currentUser = null; profile = null; plan = null;
+    trackerState = {}; trackerHistory = []; weightLog = [];
+    APP_STATE = 'signin';
+    render();
+  }catch(e){
+    showError('Could not delete your data: ' + e.message);
+  }
 }
 
 /* ============================== QUESTIONNAIRE FLOW ============================== */
@@ -897,13 +1005,14 @@ function renderDashboard(){
   const d = plan.days.find(x=>x.day===activeDay);
   const upNext = getUpNextDay();
   const {done, total, pct:dayPct} = dayProgress(d.day);
-
-  const recentHistory = trackerHistory.slice(-8).reverse();
+  const dayIdx = plan.days.findIndex(x=>x.day===activeDay);
+  const hasPrev = dayIdx > 0, hasNext = dayIdx < plan.days.length-1;
 
   root().innerHTML = `
     <div class="topbar">
+      <span class="topbar-link" id="accountLink">Account</span>
+      <div class="theme-toggle" id="themeToggleBtn">${themeToggleSvg()}</div>
       <span class="topbar-link" id="signOutLink">Sign Out</span>
-      <span class="topbar-link gold" id="retakeLink">Edit Plan</span>
     </div>
     <header>
       <div class="title-block">
@@ -912,14 +1021,13 @@ function renderDashboard(){
       </div>
       <div class="ring-wrap">
         <svg width="58" height="58" style="position:absolute; top:0; left:0; transform:rotate(-90deg);">
-          <circle cx="29" cy="29" r="25" stroke="#2E2E36" stroke-width="5" fill="none"/>
-          <circle cx="29" cy="29" r="25" stroke="#F2B705" stroke-width="5" fill="none" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference*(1-weekPct)}" stroke-linecap="round"/>
+          <circle class="ring-track" cx="29" cy="29" r="25" stroke-width="5" fill="none"/>
+          <circle class="ring-fill" cx="29" cy="29" r="25" stroke-width="5" fill="none" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference*(1-weekPct)}" stroke-linecap="round"/>
         </svg>
         <div class="ring"><span>${Math.round(weekPct*100)}%</span></div>
       </div>
     </header>
 
-    <button class="save-entry-btn" id="saveEntryBtn">Save Entry</button>
     <div class="save-status" id="saveStatus"></div>
 
     <div class="plan-summary">
@@ -978,24 +1086,26 @@ function renderDashboard(){
       <p class="diet-note">This is general guidance, not personalized medical or dietetic advice — a registered dietitian can tailor exact numbers to you.</p>
     </div>
 
+    <div class="ai-card">
+      <h3>ASK YOUR COACH</h3>
+      <div class="ai-sub">Quick questions on form, nutrition, or general fitness. Not a substitute for professional medical advice.</div>
+      <div class="ai-input-row">
+        <textarea id="coachInput" rows="2" placeholder="e.g. What's a good warmup before leg day?"></textarea>
+        <button class="ai-btn" id="coachAskBtn" ${coachLoading?'disabled':''}>${coachLoading?'…':'Ask'}</button>
+      </div>
+      ${coachAnswer ? `<div class="ai-answer">${coachAnswer}</div>` : ''}
+    </div>
+
     <div class="day-tabs" id="dayTabs" style="grid-template-columns:repeat(${N},1fr);"></div>
+    <div class="swipe-nav">
+      <span class="swipe-chevron ${hasPrev?'':'disabled'}" id="prevDayBtn">${hasPrev ? '‹ '+plan.days[dayIdx-1].title : ''}</span>
+      <span class="swipe-chevron ${hasNext?'':'disabled'}" id="nextDayBtn">${hasNext ? plan.days[dayIdx+1].title+' ›' : ''}</span>
+    </div>
     <div id="dayContent"></div>
 
     <div class="week-overview">
       <h3>WEEKLY GRIND</h3>
       <div class="week-grid" id="weekGrid" style="grid-template-columns:repeat(${N},1fr);"></div>
-    </div>
-
-    <div class="history-section">
-      <h3>WEEKLY HISTORY</h3>
-      <div class="history-list">
-        ${recentHistory.length===0 ? `<div class="history-empty">Your first full week will show up here once it wraps.</div>` :
-          recentHistory.map(w=>{ const p=w.total?Math.round((w.done/w.total)*100):0; return `
-          <div class="history-row">
-            <div class="history-row-top"><span class="history-label">${w.label}</span><span class="history-pct">${w.done}/${w.total} · ${p}%</span></div>
-            <div class="history-bar"><div class="history-bar-fill" style="width:${p}%"></div></div>
-          </div>`; }).join('')}
-      </div>
     </div>
 
     <button class="reset-btn" id="resetBtn">Reset This Week</button>
@@ -1068,7 +1178,16 @@ function renderDashboard(){
         </div>
       </div>
     </div>` : '';
-  document.getElementById('dayContent').innerHTML = header + `<div class="ex-list">${cards}${emptyState}</div>`;
+  const aiAddRow = `
+    <div class="ai-add-row">
+      <label>Add an exercise to this day with AI</label>
+      <div class="ai-input-row">
+        <input type="text" id="addExInput" placeholder="e.g. cable face pulls for rear delts, 3x15">
+        <button class="ai-btn" id="addExBtn" ${addExLoading?'disabled':''}>${addExLoading?'…':'Add'}</button>
+      </div>
+      ${addExError ? `<div class="ai-answer" style="color:var(--bad);">${addExError}</div>` : ''}
+    </div>`;
+  document.getElementById('dayContent').innerHTML = header + `<div class="ex-list">${cards}${emptyState}</div>` + aiAddRow;
   document.querySelectorAll('[data-set]').forEach(el=>{
     el.onclick = ()=>{ const [exId,idx,tot] = el.dataset.set.split('|'); toggleSet(exId, parseInt(idx,10), parseInt(tot,10)); };
   });
@@ -1084,9 +1203,11 @@ function renderDashboard(){
   });
 
   // bindings
+  document.getElementById('accountLink').onclick = ()=>{ APP_STATE='account'; render(); };
+  document.getElementById('themeToggleBtn').onclick = toggleTheme;
   document.getElementById('signOutLink').onclick = handleSignOut;
-  document.getElementById('retakeLink').onclick = startRetake;
-  document.getElementById('saveEntryBtn').onclick = manualSave;
+  if(hasPrev) document.getElementById('prevDayBtn').onclick = ()=>{ activeDay = plan.days[dayIdx-1].day; renderDashboard(); };
+  if(hasNext) document.getElementById('nextDayBtn').onclick = ()=>{ activeDay = plan.days[dayIdx+1].day; renderDashboard(); };
   const wBtn = document.getElementById('logWeightBtn');
   const wInp = document.getElementById('weightInput');
   wBtn.onclick = ()=>{ logWeight(wInp.value); wInp.value=''; };
@@ -1096,6 +1217,45 @@ function renderDashboard(){
     await saveAll();
     renderDashboard();
   };
+  document.getElementById('coachAskBtn').onclick = async ()=>{
+    const inp = document.getElementById('coachInput');
+    const q = inp.value.trim();
+    if(!q) return;
+    coachLoading = true; coachAnswer=''; renderDashboard();
+    try{ coachAnswer = await callClaude('ask_question', q, null); }
+    catch(e){ coachAnswer = 'Sorry — ' + e.message; }
+    coachLoading = false; renderDashboard();
+  };
+  const addExBtnEl = document.getElementById('addExBtn');
+  if(addExBtnEl){
+    addExBtnEl.onclick = async ()=>{
+      const inp = document.getElementById('addExInput');
+      const desc = inp.value.trim();
+      if(!desc) return;
+      addExLoading = true; addExError=''; renderDashboard();
+      try{
+        const raw = await callClaude('add_workout', desc, {dayTitle:d.title, split:d.split, existing:d.exercises.map(e=>e.name)});
+        const parsed = JSON.parse(stripCodeFences(raw));
+        const newEx = {
+          id: 'ai_' + Date.now(),
+          name: String(parsed.name||'Custom Exercise').slice(0,60),
+          tag: String(parsed.tag||'Custom').slice(0,30),
+          sets: Math.max(1, Math.min(10, parseInt(parsed.sets,10) || 3)),
+          reps: String(parsed.reps||'8-12').slice(0,20),
+          weight: parsed.weight==null ? '—' : String(parsed.weight).slice(0,10),
+          unit: String(parsed.unit||'lbs').slice(0,10),
+          muscles: String(parsed.muscles||'').slice(0,200),
+        };
+        const dayObj = plan.days.find(x=>x.day===activeDay);
+        dayObj.exercises.push(newEx);
+        await saveAll();
+      }catch(e){
+        addExError = "Couldn't add that — " + e.message;
+      }
+      addExLoading = false;
+      renderDashboard();
+    };
+  }
   renderSaveStatus();
 }
 
@@ -1140,6 +1300,70 @@ function renderCheckEmail(){
   document.getElementById('backToSignIn').onclick = ()=>{ hideError(); APP_STATE='signin'; render(); };
 }
 
+function renderAccount(){
+  const recentHistory = trackerHistory.slice(-12).reverse();
+  const memberSince = new Date(profile.created_at).toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'});
+
+  root().innerHTML = `
+    <div class="topbar">
+      <span class="topbar-link" id="backToDash">‹ Back</span>
+      <div class="theme-toggle" id="themeToggleBtn">${themeToggleSvg()}</div>
+      <span class="topbar-link" id="signOutLink">Sign Out</span>
+    </div>
+    <div class="title-block" style="margin-bottom:16px;"><h1>ACCOUNT</h1><p>Your details & history</p></div>
+
+    <div class="account-card">
+      <div class="account-row"><span>Email</span><b>${currentUser.email}</b></div>
+      <div class="account-row"><span>Member Since</span><b>${memberSince}</b></div>
+      <div class="account-row"><span>Goal</span><b>${GOAL_LABEL[profile.goal]}</b></div>
+      <div class="account-row"><span>Experience</span><b>${EXPERIENCE_LABEL[profile.experience]||profile.experience}</b></div>
+      <div class="account-row"><span>Split</span><b>${SPLIT_LABEL[profile.days_per_week]}</b></div>
+      <div class="account-row"><span>Equipment</span><b>${EQUIP_LABEL[profile.equipment]}</b></div>
+      <div class="account-row"><span>Activity Level</span><b>${ACTIVITY_LABEL[profile.activity]||profile.activity}</b></div>
+      <div class="account-row"><span>Diet</span><b>${DIET_LABEL[profile.diet]}</b></div>
+      <div class="account-row"><span>Current / Goal Weight</span><b>${profile.current_weight} → ${profile.goal_weight} lbs</b></div>
+      <div class="account-row"><span>Timeframe</span><b>${profile.timeframe_weeks} weeks</b></div>
+      <div class="account-row"><span>Avoiding</span><b>${(profile.avoid&&profile.avoid.length) ? profile.avoid.join(', ') : 'Nothing flagged'}</b></div>
+    </div>
+
+    <div class="history-section" style="margin-top:0;">
+      <h3>WEEKLY HISTORY</h3>
+      <div class="history-list">
+        ${recentHistory.length===0 ? `<div class="history-empty">Your first full week will show up here once it wraps.</div>` :
+          recentHistory.map(w=>{ const p=w.total?Math.round((w.done/w.total)*100):0; return `
+          <div class="history-row">
+            <div class="history-row-top"><span class="history-label">${w.label}</span><span class="history-pct">${w.done}/${w.total} · ${p}%</span></div>
+            <div class="history-bar"><div class="history-bar-fill" style="width:${p}%"></div></div>
+          </div>`; }).join('')}
+      </div>
+    </div>
+
+    <div class="account-actions" style="margin-top:20px;">
+      <button class="btn-secondary" id="editPlanBtn">Edit Plan</button>
+      <button class="btn-danger" id="deleteDataBtn">Delete My Data</button>
+    </div>
+    <div id="deleteConfirmArea"></div>
+  `;
+
+  document.getElementById('backToDash').onclick = ()=>{ APP_STATE='dashboard'; render(); };
+  document.getElementById('themeToggleBtn').onclick = toggleTheme;
+  document.getElementById('signOutLink').onclick = handleSignOut;
+  document.getElementById('editPlanBtn').onclick = startRetake;
+  document.getElementById('deleteDataBtn').onclick = ()=>{
+    deleteConfirmOpen = true;
+    document.getElementById('deleteConfirmArea').innerHTML = `
+      <div class="confirm-box">
+        This permanently deletes your profile, plan, weight log, and workout history. This does not remove your login credential itself — you'd need to contact support or use the account-deletion function if one is configured. This cannot be undone.
+        <div class="row">
+          <button id="cancelDelete">Cancel</button>
+          <button class="danger" id="reallyDelete">Yes, Delete My Data</button>
+        </div>
+      </div>`;
+    document.getElementById('cancelDelete').onclick = ()=>{ deleteConfirmOpen=false; document.getElementById('deleteConfirmArea').innerHTML=''; };
+    document.getElementById('reallyDelete').onclick = confirmDeleteData;
+  };
+}
+
 function render(){
   if(APP_STATE==='loading') root().innerHTML = `<div class="loading">Loading…</div>`;
   else if(APP_STATE==='signin') renderSignIn();
@@ -1147,23 +1371,58 @@ function render(){
   else if(APP_STATE==='check-email') renderCheckEmail();
   else if(APP_STATE==='questionnaire') renderQuestionnaire();
   else if(APP_STATE==='dashboard') renderDashboard();
+  else if(APP_STATE==='account') renderAccount();
 }
 
 /* ============================== INIT ============================== */
+let confirmToastShown = false;
+function maybeShowConfirmToast(){
+  if(arrivedViaEmailConfirm && !confirmToastShown){
+    confirmToastShown = true;
+    showToast('✓ Email confirmed — you\'re in!');
+  }
+}
+
+function setupSwipeGestures(){
+  let touchStartX = null, touchStartY = null;
+  document.addEventListener('touchstart', (e)=>{
+    const dc = document.getElementById('dayContent');
+    if(!dc || !dc.contains(e.target)){ touchStartX = null; return; }
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, {passive:true});
+  document.addEventListener('touchend', (e)=>{
+    if(touchStartX===null || APP_STATE!=='dashboard' || !plan){ touchStartX = null; return; }
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    touchStartX = null;
+    if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)*1.5) return;
+    const idx = plan.days.findIndex(dd=>dd.day===activeDay);
+    if(dx < 0 && idx < plan.days.length-1){ activeDay = plan.days[idx+1].day; renderDashboard(); }
+    else if(dx > 0 && idx > 0){ activeDay = plan.days[idx-1].day; renderDashboard(); }
+  }, {passive:true});
+}
+
 async function init(){
   const {data:{session}} = await sb.auth.getSession();
-  if(session){ currentUser = session.user; await loadProfileAndData(); }
+  if(session){
+    currentUser = session.user;
+    await loadProfileAndData();
+    maybeShowConfirmToast();
+  }
   else { APP_STATE = 'signin'; render(); }
 
   sb.auth.onAuthStateChange((event, session)=>{
     if(event==='SIGNED_IN' && session && (!currentUser || currentUser.id!==session.user.id)){
       currentUser = session.user;
-      loadProfileAndData();
+      loadProfileAndData().then(maybeShowConfirmToast);
     } else if(event==='SIGNED_OUT'){
       currentUser = null; profile = null; plan = null;
       APP_STATE = 'signin'; render();
     }
   });
+
+  setupSwipeGestures();
 }
 init();
 </script>
