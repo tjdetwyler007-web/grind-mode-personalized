@@ -802,6 +802,7 @@ async function loadProfileAndData(){
     trackerState = tracker.state || {};
     trackerHistory = tracker.history || [];
     weightLog = tracker.weightLog || [];
+    if(migrateTrackerState()) silentSave();
     activeDay = getUpNextDay();
     handleWeekRollover();
     APP_STATE = 'dashboard';
@@ -1017,6 +1018,38 @@ function startRetake(){
 }
 
 /* ============================== TRACKER LOGIC (per-user) ============================== */
+// Progress must be keyed by (day + exercise), not exercise alone — the same
+// exercise can legitimately appear on more than one day (e.g. a 6-day PPL
+// split repeats "Push Day" twice), and a bare exercise-id key would make
+// checking a set on one day also mark it done on every other day sharing
+// that exercise. '::' can't appear in a real exercise id, so it's a safe
+// separator.
+function trackerKey(day, exId){ return `${day}::${exId}`; }
+
+// One-time migration for accounts saved before day-scoping existed: a bare
+// exercise-id key that maps to exactly one day in the current plan is
+// unambiguous and gets moved forward; a key matching more than one day is
+// exactly the cross-day bug itself, so it's dropped rather than guessed at.
+function migrateTrackerState(){
+  if(!plan || !Array.isArray(plan.days)) return false;
+  const idToDays = {};
+  plan.days.forEach(d=> d.exercises.forEach(ex=>{
+    (idToDays[ex.id] = idToDays[ex.id] || []).push(d.day);
+  }));
+  let changed = false;
+  Object.keys(trackerState).forEach(key=>{
+    if(key === '__meta' || key.includes('::')) return;
+    const days = idToDays[key];
+    if(days && days.length === 1){
+      const newKey = trackerKey(days[0], key);
+      if(!trackerState[newKey]) trackerState[newKey] = trackerState[key];
+    }
+    delete trackerState[key];
+    changed = true;
+  });
+  return changed;
+}
+
 function isExerciseDone(ex, s){
   const checks = (s && s.setsChecked) || [];
   if(checks.length !== ex.sets) return false;
@@ -1025,7 +1058,7 @@ function isExerciseDone(ex, s){
 function dayProgress(dayNum){
   const d = plan.days.find(x=>x.day===dayNum);
   const total = d.exercises.length;
-  const done = d.exercises.filter(ex=>isExerciseDone(ex, trackerState[ex.id])).length;
+  const done = d.exercises.filter(ex=>isExerciseDone(ex, trackerState[trackerKey(dayNum, ex.id)])).length;
   return {done, total, pct: total?done/total:0};
 }
 function getUpNextDay(){
@@ -1082,12 +1115,13 @@ async function logWeight(rawValue){
 }
 
 let toggleSaveTimer = null;
-function toggleSet(exId, idx, total){
-  if(!trackerState[exId]) trackerState[exId] = {};
-  if(!Array.isArray(trackerState[exId].setsChecked) || trackerState[exId].setsChecked.length!==total){
-    trackerState[exId].setsChecked = new Array(total).fill(false);
+function toggleSet(day, exId, idx, total){
+  const key = trackerKey(day, exId);
+  if(!trackerState[key]) trackerState[key] = {};
+  if(!Array.isArray(trackerState[key].setsChecked) || trackerState[key].setsChecked.length!==total){
+    trackerState[key].setsChecked = new Array(total).fill(false);
   }
-  trackerState[exId].setsChecked[idx] = !trackerState[exId].setsChecked[idx];
+  trackerState[key].setsChecked[idx] = !trackerState[key].setsChecked[idx];
   renderDashboard();
   clearTimeout(toggleSaveTimer);
   toggleSaveTimer = setTimeout(()=>{ saveAll(); }, 350);
@@ -1193,7 +1227,7 @@ function handleSaveEditEx(exId){
   if(!ex) return;
   ex.name = v.name; ex.tag = v.tag; ex.sets = v.sets; ex.reps = v.reps;
   ex.weight = v.weight; ex.unit = v.unit; ex.muscles = v.muscles;
-  delete trackerState[ex.id]; // sets count may have changed — drop any stale checkmarks
+  delete trackerState[trackerKey(activeDay, ex.id)]; // sets count may have changed — drop any stale checkmarks
   editingExId = null;
   saveAll();
   renderDashboard();
@@ -1202,7 +1236,7 @@ function handleSaveEditEx(exId){
 function handleDeleteEx(exId){
   const dayObj = plan.days.find(x=>x.day===activeDay);
   dayObj.exercises = dayObj.exercises.filter(e=>e.id!==exId);
-  delete trackerState[exId];
+  delete trackerState[trackerKey(activeDay, exId)];
   deleteConfirmExId = null;
   saveAll();
   renderDashboard();
@@ -1400,7 +1434,7 @@ function renderDashboard(){
     if(editingExId === ex.id){
       return editExerciseFormHtml(ex);
     }
-    const s = trackerState[ex.id] || {};
+    const s = trackerState[trackerKey(d.day, ex.id)] || {};
     const setsChecked = (Array.isArray(s.setsChecked) && s.setsChecked.length===ex.sets) ? s.setsChecked : new Array(ex.sets).fill(false);
     const isDone = isExerciseDone(ex, s);
     const confirmingDelete = deleteConfirmExId === ex.id;
@@ -1463,7 +1497,7 @@ function renderDashboard(){
     : `<div class="add-ex-row" ${d.exercises.length===0?'style="border-top:none; padding-top:0;"':''}><button class="btn-secondary" id="openAddForm">+ Add Exercise</button></div>`;
   document.getElementById('dayContent').innerHTML = header + `<div class="ex-list">${cards}${emptyState}</div>` + addExSection;
   document.querySelectorAll('[data-set]').forEach(el=>{
-    el.onclick = ()=>{ const [exId,idx,tot] = el.dataset.set.split('|'); toggleSet(exId, parseInt(idx,10), parseInt(tot,10)); };
+    el.onclick = ()=>{ const [exId,idx,tot] = el.dataset.set.split('|'); toggleSet(activeDay, exId, parseInt(idx,10), parseInt(tot,10)); };
   });
   document.querySelectorAll('[data-edit-ex]').forEach(el=>{
     el.onclick = ()=>{ editingExId = el.dataset.editEx; deleteConfirmExId = null; addFormOpen = false; renderDashboard(); };
@@ -1513,7 +1547,7 @@ function renderDashboard(){
   const dietToggle = document.getElementById('dietDetailsToggle');
   if(dietToggle) dietToggle.onclick = ()=>{ dietDetailsOpen = !dietDetailsOpen; renderDashboard(); };
   document.getElementById('resetBtn').onclick = async ()=>{
-    plan.days.forEach(dd=> dd.exercises.forEach(ex=> delete trackerState[ex.id]));
+    plan.days.forEach(dd=> dd.exercises.forEach(ex=> delete trackerState[trackerKey(dd.day, ex.id)]));
     await saveAll();
     renderDashboard();
   };
