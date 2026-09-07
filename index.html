@@ -64,16 +64,11 @@
   .stats-strip svg{flex-shrink:0; width:18px; height:18px; stroke:var(--gold); margin-top:1px;}
   .stats-strip b{color:var(--gold); font-weight:700;}
 
-  header{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:12px;}
   .title-block h1{
     font-family:'Bungee', sans-serif; font-size:26px; letter-spacing:0.5px; line-height:1.05;
     color:var(--gold); text-shadow: 2px 2px 0 rgba(0,0,0,0.6), 0 0 22px rgba(242,183,5,0.35);
   }
   .title-block p{color:var(--muted); font-size:11px; margin-top:6px; letter-spacing:1.2px; font-weight:700; text-transform:uppercase;}
-
-  .ring-wrap{position:relative; width:58px; height:58px; flex-shrink:0;}
-  .ring{width:58px; height:58px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
-  .ring span{font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700; color:var(--gold);}
 
   .day-tabs{display:grid; gap:7px; margin-bottom:18px;}
   .day-tab{
@@ -256,8 +251,6 @@
   .q-input-row input:focus{outline:none; border-color:var(--gold);}
 
   .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
-  .topbar-link{font-size:11px; color:var(--muted); cursor:pointer; font-weight:700; text-decoration:underline; text-underline-offset:2px;}
-  .topbar-link.gold{color:var(--gold);}
 
   .plan-summary{background:var(--card); border:1.5px solid var(--gold-dim); border-radius:16px; padding:16px 18px; margin-bottom:16px;}
   .plan-summary-row{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); padding:6px 0; border-bottom:1px dashed var(--line);}
@@ -292,23 +285,60 @@
   .confirm-box button{flex:1; padding:10px; border-radius:10px; font-family:'Teko',sans-serif; font-size:13px; text-transform:uppercase; cursor:pointer; border:1.5px solid var(--line); background:var(--bg-2); color:var(--ink);}
   .confirm-box button.danger{background:var(--bad); border-color:var(--bad); color:#fff; font-weight:800;}
 
-  /* --- Ask Coach / AI panels --- */
-  .ai-card{background:var(--card); border:1.5px solid var(--gold-dim); border-radius:16px; padding:16px 18px; margin-bottom:18px;}
-  .ai-card h3{font-family:'Bungee',sans-serif; font-size:15px; color:var(--gold); margin-bottom:4px;}
-  .ai-sub{font-size:11px; color:var(--muted); line-height:1.5; margin-bottom:12px;}
-  .ai-input-row{display:flex; gap:8px;}
-  .ai-input-row textarea, .ai-input-row input{flex:1; background:var(--bg-2); border:1.5px solid var(--line); border-radius:8px; color:var(--ink); font-family:'Inter',sans-serif; font-size:13px; padding:9px 10px; resize:none;}
-  .ai-input-row textarea:focus, .ai-input-row input:focus{outline:none; border-color:var(--gold);}
-  .ai-btn{background:var(--gold); border:none; color:#0A0A0C; font-weight:800; font-size:12px; padding:0 16px; border-radius:8px; cursor:pointer; text-transform:uppercase; font-family:'Teko',sans-serif;}
-  .ai-btn:disabled{opacity:0.5; cursor:default;}
-  .ai-answer{margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); font-size:12.5px; line-height:1.6; color:var(--ink); white-space:pre-wrap;}
-  .ai-add-row{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
-  .ai-add-row label{font-size:9.5px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); font-weight:700; display:block; margin-bottom:6px;}
-
   /* --- Swipe chevrons --- */
   .swipe-nav{display:flex; justify-content:space-between; margin-bottom:8px;}
   .swipe-chevron{font-size:11px; color:var(--muted); font-weight:700; cursor:pointer; padding:4px 8px;}
   .swipe-chevron.disabled{opacity:0.3; cursor:default;}
+
+  /* --- Per-exercise edit/delete + manual add form --- */
+  .ex-actions{display:flex; justify-content:flex-end; gap:16px; margin-top:10px;}
+  .ex-actions span{font-size:10px; color:var(--muted); cursor:pointer; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; text-decoration:underline; text-underline-offset:2px;}
+  .ex-actions span.danger{color:var(--bad);}
+  .add-ex-row{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
+  .add-ex-row label{font-size:9.5px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); font-weight:700; display:block; margin-bottom:6px; margin-top:12px;}
+  .add-ex-row label:first-child{margin-top:0;}
+  .add-ex-row input, .add-ex-row select{width:100%; background:var(--bg-2); border:1.5px solid var(--line); border-radius:8px; color:var(--ink); font-family:'Inter',sans-serif; font-size:13px; padding:9px 10px;}
+  .add-ex-row input:focus, .add-ex-row select:focus{outline:none; border-color:var(--gold);}
+  .add-ex-row .row2{display:flex; gap:10px;}
+  .add-ex-row .row2 > div{flex:1; min-width:0;}
+  .edit-ex-form{padding-top:2px;}
+
+  /* --- Hero header (new school) --- */
+  .hero-header{
+    position:relative; overflow:hidden; border-radius:20px; border:1.5px solid var(--gold-dim);
+    background:linear-gradient(135deg, var(--push-bg) 0%, var(--card) 38%, var(--card) 62%, var(--pull-bg) 100%);
+    padding:14px 16px 20px; margin-bottom:18px;
+  }
+  .hero-header::after{
+    content:''; position:absolute; top:-50%; right:6%; width:120px; height:220%;
+    background:linear-gradient(180deg, var(--gold), transparent 70%);
+    opacity:0.10; transform:rotate(18deg); pointer-events:none;
+  }
+  .hero-nav{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; position:relative; z-index:1;}
+  .hero-nav-group{display:flex; gap:8px;}
+  .icon-btn{
+    width:34px; height:34px; border-radius:50%; border:1.5px solid var(--line); background:rgba(127,127,127,0.08);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .icon-btn:active{transform:scale(0.9);}
+  .icon-btn svg{width:16px; height:16px; stroke:var(--gold);}
+  .hero-main{display:flex; align-items:center; justify-content:space-between; gap:14px; position:relative; z-index:1;}
+  .hero-logo{
+    font-family:'Bungee',sans-serif; font-size:29px; letter-spacing:0.5px; line-height:0.92; color:var(--gold);
+    text-shadow:3px 3px 0 rgba(0,0,0,0.55), 0 0 26px rgba(242,183,5,0.4);
+  }
+  .hero-badge{
+    display:inline-flex; align-items:center; gap:7px; margin-top:9px;
+    background:var(--bg-2); border:1.5px solid var(--line); border-radius:20px;
+    padding:5px 13px 5px 10px; font-family:'Teko',sans-serif; font-size:13px; letter-spacing:0.3px;
+    color:var(--ink); font-weight:600; white-space:nowrap;
+  }
+  .hero-badge .dot{width:6px; height:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 6px var(--gold); flex-shrink:0;}
+  .hero-ring-wrap{position:relative; width:82px; height:82px; flex-shrink:0;}
+  .hero-ring-label{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .hero-pct{font-family:'Bungee',sans-serif; font-size:18px; color:var(--ink); line-height:1;}
+  .hero-pct-sub{font-family:'JetBrains Mono',monospace; font-size:7px; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted); margin-top:3px;}
 </style>
 </head>
 <body>
@@ -438,9 +468,55 @@ const EX = [
   {id:'bicycle_crunch', name:'Bicycle Crunch', muscle:'obliques', compound:false, equipment:['bodyweight'], seed:0, unit:'bodyweight', bwScaled:false, joints:[], desc:'Rotational core work hitting the obliques and rectus abdominis together.'},
   // ABDUCTORS
   {id:'hip_abduction', name:'Hip Abduction Machine', muscle:'abductors', compound:false, equipment:['machine'], seed:75, unit:'lbs', bwScaled:false, joints:[], desc:'Gluteus medius and minimus and the outer hip abductors.'},
+  // CARDIO — style is 'steady' (one continuous effort) or 'intervals' (rounds of work/rest)
+  {id:'incline_walk', name:'Incline Treadmill Walk', muscle:'cardio', style:'steady', equipment:['machine'], joints:[], desc:'Low-impact steady-state cardio that burns calories while sparing your joints and recovery for lifting days.'},
+  {id:'treadmill_jog', name:'Treadmill Jog', muscle:'cardio', style:'steady', equipment:['machine'], joints:['knee'], desc:'Moderate-intensity steady-state running for cardiovascular conditioning and calorie burn.'},
+  {id:'stationary_bike', name:'Stationary Bike', muscle:'cardio', style:'steady', equipment:['machine'], joints:[], desc:'Joint-friendly steady-state cardio that\u2019s easy to sustain without loading the knees or spine.'},
+  {id:'rowing_machine', name:'Rowing Machine', muscle:'cardio', style:'steady', equipment:['machine'], joints:['lower_back'], desc:'Full-body steady-state cardio that also lightly engages the back and legs.'},
+  {id:'elliptical', name:'Elliptical', muscle:'cardio', style:'steady', equipment:['machine'], joints:[], desc:'Low-impact steady-state cardio working both upper and lower body together.'},
+  {id:'bike_intervals', name:'Stationary Bike Sprint Intervals', muscle:'cardio', style:'intervals', equipment:['machine'], joints:[], desc:'Alternating hard and easy efforts on a bike to spike calorie burn in less time.'},
+  {id:'rowing_intervals', name:'Rowing Sprint Intervals', muscle:'cardio', style:'intervals', equipment:['machine'], joints:['lower_back'], desc:'High-intensity rowing rounds for a fast, full-body conditioning finisher.'},
+  {id:'jump_rope', name:'Jump Rope', muscle:'cardio', style:'steady', equipment:['bodyweight'], joints:['knee'], desc:'Simple, equipment-light steady-state cardio that also builds calf endurance and coordination.'},
+  {id:'jump_rope_intervals', name:'Jump Rope Intervals', muscle:'cardio', style:'intervals', equipment:['bodyweight'], joints:['knee'], desc:'Fast rounds of jump rope work for a quick, no-equipment conditioning finisher.'},
+  {id:'outdoor_run', name:'Outdoor Run / Jog', muscle:'cardio', style:'steady', equipment:['bodyweight'], joints:['knee'], desc:'Free, equipment-free steady-state cardio for cardiovascular conditioning.'},
+  {id:'brisk_walk', name:'Brisk Walk', muscle:'cardio', style:'steady', equipment:['bodyweight'], joints:[], desc:'The most joint-friendly cardio option — an easy, sustainable way to add daily activity.'},
+  {id:'bodyweight_hiit', name:'Bodyweight HIIT Circuit', muscle:'cardio', style:'intervals', equipment:['bodyweight'], joints:['knee'], desc:'Rounds of bodyweight moves like jumping jacks and mountain climbers for a no-equipment conditioning finisher.'},
 ];
 
-const MUSCLE_LABEL = {chest:'Chest', back:'Back', shoulders:'Shoulders', biceps:'Biceps', triceps:'Triceps', quads:'Quads', hamstrings:'Hamstrings', glutes:'Glutes', calves:'Calves', abs:'Abs', obliques:'Obliques', forearms:'Forearm', traps:'Traps', abductors:'Abductors'};
+const MUSCLE_LABEL = {chest:'Chest', back:'Back', shoulders:'Shoulders', biceps:'Biceps', triceps:'Triceps', quads:'Quads', hamstrings:'Hamstrings', glutes:'Glutes', calves:'Calves', abs:'Abs', obliques:'Obliques', forearms:'Forearm', traps:'Traps', abductors:'Abductors', cardio:'Cardio'};
+const TAG_TO_MUSCLE = Object.fromEntries(Object.entries(MUSCLE_LABEL).map(([k,v])=>[v,k]));
+function muscleKeyFromTag(tag){ return TAG_TO_MUSCLE[tag] || 'chest'; }
+
+// Auto-generated "Targets:" text for exercises the user adds or edits
+// themselves — picked purely from the muscle group they select, no AI call.
+const GENERIC_MUSCLE_DESC = {
+  chest: 'Targets the pectoralis major, with supporting engagement from the front shoulders and triceps depending on the movement.',
+  back: 'Targets the latissimus dorsi and mid-back muscles (rhomboids, traps), the primary pulling muscles of the upper body.',
+  shoulders: 'Targets the deltoids, the muscles that cap and move the shoulder joint in pressing and raising movements.',
+  biceps: 'Targets the biceps brachii, the primary muscle for elbow flexion.',
+  triceps: 'Targets the triceps brachii, the primary muscle for elbow extension.',
+  quads: 'Targets the quadriceps, the primary muscle group extending the knee in squatting and pressing movements.',
+  hamstrings: 'Targets the hamstrings, which flex the knee and extend the hip.',
+  glutes: 'Targets the glutes, the primary hip-extension muscle group.',
+  calves: 'Targets the calf muscles (gastrocnemius and soleus), responsible for ankle extension.',
+  abs: 'Targets the rectus abdominis and surrounding core muscles that flex and stabilize the spine.',
+  obliques: 'Targets the internal and external obliques, which rotate and stabilize the torso.',
+  forearms: 'Targets the forearm flexor and extensor muscles that support grip strength.',
+  traps: 'Targets the trapezius, which elevates and stabilizes the shoulder blades.',
+  abductors: 'Targets the hip abductors (gluteus medius/minimus), which move the leg outward and stabilize the pelvis.',
+  cardio: 'A cardiovascular conditioning exercise that raises heart rate for calorie burn and endurance.',
+};
+function describeMuscle(muscle){
+  return GENERIC_MUSCLE_DESC[muscle] || 'Works the muscles engaged by this movement — track good form and progressive load over time.';
+}
+
+const CARDIO_DURATION = {
+  fat_loss: {steady:'25-30 min', intervals:'15-20 min'},
+  recomp: {steady:'20-25 min', intervals:'12-15 min'},
+  general: {steady:'20-25 min', intervals:'12-15 min'},
+  muscle_gain: {steady:'12-15 min', intervals:'10 min'},
+  strength: {steady:'12-15 min', intervals:'10 min'},
+};
 
 /* ============================== SPLIT TEMPLATES ============================== */
 const TEMPLATES = {
@@ -516,6 +592,37 @@ function materialize(e, profile){
   return {id:e.id, name:e.name, tag:MUSCLE_LABEL[e.muscle]||e.muscle, sets, reps, weight:weightDisplay, unit:e.unit, muscles:e.desc};
 }
 
+function materializeCardio(e, profile){
+  const dur = CARDIO_DURATION[profile.goal] || CARDIO_DURATION.general;
+  if(e.style === 'intervals'){
+    return {id:e.id, name:e.name, tag:'Cardio', sets:6, reps:`${dur.intervals} · 30s on/30s off`, weight:'—', unit:'intervals', muscles:e.desc};
+  }
+  return {id:e.id, name:e.name, tag:'Cardio', sets:1, reps:dur.steady, weight:'—', unit:'steady-state', muscles:e.desc};
+}
+
+// Cardio dosage is scaled to the goal, not just bolted on uniformly: fat loss
+// benefits from daily cardio, strength/muscle-gain goals get just enough to
+// support cardiovascular health without competing with recovery for lifting.
+function addCardioToPlan(days, profile, pool){
+  const cardioPool = pool.filter(e=>e.muscle==='cardio');
+  if(cardioPool.length===0) return;
+  const steadyPool = cardioPool.filter(e=>e.style==='steady');
+  const intervalPool = cardioPool.filter(e=>e.style==='intervals');
+
+  days.forEach((day, idx)=>{
+    let include, useIntervals;
+    if(profile.goal==='fat_loss'){ include = true; useIntervals = (idx%2===1); }
+    else if(profile.goal==='recomp' || profile.goal==='general'){ include = (idx%2===1); useIntervals = false; }
+    else { include = (idx === days.length-1); useIntervals = false; } // muscle_gain / strength: once a week, steady only
+
+    if(!include) return;
+    const chosenPool = (useIntervals && intervalPool.length) ? intervalPool : (steadyPool.length ? steadyPool : cardioPool);
+    const chosen = chosenPool[idx % chosenPool.length];
+    day.exercises.push(materializeCardio(chosen, profile));
+    if(!day.subtitle.includes('Cardio')) day.subtitle = day.subtitle ? day.subtitle + ' · Cardio' : 'Cardio';
+  });
+}
+
 function buildDay(template, pool, dayNum, profile){
   const usedIds = new Set();
   const picked = [];
@@ -537,6 +644,7 @@ function generatePlan(profile){
   const templates = TEMPLATES[profile.days] || TEMPLATES[4];
   const pool = buildPool(profile);
   const days = templates.map((t,i)=>buildDay(t, pool, i+1, profile));
+  addCardioToPlan(days, profile, pool);
   return {days, generatedAt: new Date().toISOString()};
 }
 
@@ -609,9 +717,14 @@ let qIndex = 0, qAnswers = {};
 let activeDay = 1;
 let pendingEmail = '';
 let saveStatus = 'idle', lastSavedAt = null;
-let coachAnswer = '', coachLoading = false;
-let addExLoading = false, addExError = '';
 let deleteConfirmOpen = false;
+let addFormOpen = false, editingExId = null, deleteConfirmExId = null;
+
+function goToDay(dayNum){
+  activeDay = dayNum;
+  addFormOpen = false; editingExId = null; deleteConfirmExId = null;
+  renderDashboard();
+}
 
 const DAY_LABELS_GENERIC = null; // day tabs no longer map to weekdays — plans are user-scheduled
 
@@ -737,22 +850,6 @@ async function saveAll(){
     saveStatus='error'; renderSaveStatus();
     return false;
   }
-}
-
-/* ============================== CLAUDE AI ============================== */
-// Calls a Supabase Edge Function ("ask-claude") that holds the Anthropic API
-// key server-side. Never call api.anthropic.com directly from this file —
-// there is no way to keep a key secret in a public GitHub Pages file.
-async function callClaude(mode, prompt, context){
-  const {data, error} = await sb.functions.invoke('ask-claude', { body: {mode, prompt, context} });
-  if(error) throw new Error(error.message || 'Could not reach the AI assistant.');
-  if(data && data.error) throw new Error(data.error);
-  if(!data || typeof data.text !== 'string') throw new Error('Unexpected response from the AI assistant.');
-  return data.text;
-}
-
-function stripCodeFences(text){
-  return text.replace(/^```[a-z]*\n?/i, '').replace(/```\s*$/,'').trim();
 }
 
 /* ============================== ACCOUNT DELETION ============================== */
@@ -980,6 +1077,121 @@ function toggleSet(exId, idx, total){
   toggleSaveTimer = setTimeout(()=>{ saveAll(); }, 350);
 }
 
+/* ============================== MANUAL EXERCISE ADD / EDIT / DELETE ============================== */
+function muscleOptionsHtml(selected){
+  return Object.entries(MUSCLE_LABEL).map(([key,label])=>
+    `<option value="${key}" ${key===selected?'selected':''}>${label}</option>`
+  ).join('');
+}
+function escapeAttr(s){ return String(s==null?'':s).replace(/"/g,'&quot;'); }
+
+function exerciseFormFieldsHtml(prefix, defaults){
+  return `
+    <label>Name</label>
+    <input type="text" id="${prefix}Name" value="${escapeAttr(defaults.name)}" placeholder="e.g. Cable Face Pull">
+    <label>Muscle Group</label>
+    <select id="${prefix}Muscle">${muscleOptionsHtml(defaults.muscle)}</select>
+    <div class="row2">
+      <div><label>Sets</label><input type="text" inputmode="numeric" id="${prefix}Sets" value="${escapeAttr(defaults.sets)}"></div>
+      <div><label>Reps</label><input type="text" id="${prefix}Reps" value="${escapeAttr(defaults.reps)}" placeholder="e.g. 8-12"></div>
+    </div>
+    <div class="row2">
+      <div><label>Weight</label><input type="text" inputmode="decimal" id="${prefix}Weight" value="${escapeAttr(defaults.weight)}" placeholder="blank if bodyweight"></div>
+      <div><label>Unit</label>
+        <select id="${prefix}Unit">
+          <option value="lbs" ${defaults.unit==='lbs'?'selected':''}>lbs</option>
+          <option value="lbs ea" ${defaults.unit==='lbs ea'?'selected':''}>lbs each</option>
+          <option value="bodyweight" ${defaults.unit==='bodyweight'?'selected':''}>Bodyweight</option>
+        </select>
+      </div>
+    </div>`;
+}
+
+function addExerciseFormHtml(){
+  return `<div class="add-ex-row">
+    ${exerciseFormFieldsHtml('newEx', {name:'', muscle:'shoulders', sets:3, reps:'8-12', weight:'', unit:'lbs'})}
+    <div class="q-nav" style="margin-top:14px;">
+      <button id="cancelAddEx">Cancel</button>
+      <button class="primary" id="saveAddEx">Add Exercise</button>
+    </div>
+  </div>`;
+}
+
+function editExerciseFormHtml(ex){
+  const defaults = {
+    name: ex.name, muscle: muscleKeyFromTag(ex.tag), sets: ex.sets, reps: ex.reps,
+    weight: ex.unit==='bodyweight' ? '' : ex.weight, unit: ex.unit,
+  };
+  return `<div class="edit-ex-form">
+    ${exerciseFormFieldsHtml('editEx', defaults)}
+    <div class="q-nav" style="margin-top:14px;">
+      <button id="cancelEditEx">Cancel</button>
+      <button class="primary" id="saveEditEx">Save Changes</button>
+    </div>
+  </div>`;
+}
+
+// Reads and validates the shared form fields for a given prefix ('newEx' or 'editEx').
+// Shows the global error banner and returns null on failure.
+function readExerciseForm(prefix){
+  const name = document.getElementById(prefix+'Name').value.trim();
+  const muscle = document.getElementById(prefix+'Muscle').value;
+  const setsRaw = document.getElementById(prefix+'Sets').value;
+  const reps = document.getElementById(prefix+'Reps').value.trim();
+  const weightRaw = document.getElementById(prefix+'Weight').value;
+  const unit = document.getElementById(prefix+'Unit').value;
+
+  if(!name){ showError('Enter an exercise name.'); return null; }
+  const sets = parseInt(setsRaw, 10);
+  if(isNaN(sets) || sets < 1 || sets > 10){ showError('Sets must be a number between 1 and 10.'); return null; }
+  if(!reps){ showError('Enter a rep range or duration, e.g. 8-12 or 20 min.'); return null; }
+  let weight = '—';
+  if(unit !== 'bodyweight'){
+    const w = parseFloat(weightRaw);
+    if(isNaN(w) || w <= 0){ showError('Enter a weight, or switch the unit to Bodyweight.'); return null; }
+    weight = String(w);
+  }
+  hideError();
+  return {
+    name: name.slice(0,60), muscle, sets, reps: reps.slice(0,30), weight, unit,
+    tag: MUSCLE_LABEL[muscle] || 'Custom', muscles: describeMuscle(muscle),
+  };
+}
+
+function handleSaveAddEx(){
+  const v = readExerciseForm('newEx');
+  if(!v) return;
+  const newEx = {id:'custom_'+Date.now(), name:v.name, tag:v.tag, sets:v.sets, reps:v.reps, weight:v.weight, unit:v.unit, muscles:v.muscles};
+  const dayObj = plan.days.find(x=>x.day===activeDay);
+  dayObj.exercises.push(newEx);
+  addFormOpen = false;
+  saveAll();
+  renderDashboard();
+}
+
+function handleSaveEditEx(exId){
+  const v = readExerciseForm('editEx');
+  if(!v) return;
+  const dayObj = plan.days.find(x=>x.day===activeDay);
+  const ex = dayObj.exercises.find(e=>e.id===exId);
+  if(!ex) return;
+  ex.name = v.name; ex.tag = v.tag; ex.sets = v.sets; ex.reps = v.reps;
+  ex.weight = v.weight; ex.unit = v.unit; ex.muscles = v.muscles;
+  delete trackerState[ex.id]; // sets count may have changed — drop any stale checkmarks
+  editingExId = null;
+  saveAll();
+  renderDashboard();
+}
+
+function handleDeleteEx(exId){
+  const dayObj = plan.days.find(x=>x.day===activeDay);
+  dayObj.exercises = dayObj.exercises.filter(e=>e.id!==exId);
+  delete trackerState[exId];
+  deleteConfirmExId = null;
+  saveAll();
+  renderDashboard();
+}
+
 /* ============================== DASHBOARD RENDER ============================== */
 function renderDashboard(){
   const N = plan.days.length;
@@ -1000,7 +1212,6 @@ function renderDashboard(){
   let doneTotal=0, exTotal=0;
   plan.days.forEach(d=>{ const {done,total}=dayProgress(d.day); doneTotal+=done; exTotal+=total; });
   const weekPct = exTotal ? doneTotal/exTotal : 0;
-  const circumference = 157;
 
   const d = plan.days.find(x=>x.day===activeDay);
   const upNext = getUpNextDay();
@@ -1008,25 +1219,44 @@ function renderDashboard(){
   const dayIdx = plan.days.findIndex(x=>x.day===activeDay);
   const hasPrev = dayIdx > 0, hasNext = dayIdx < plan.days.length-1;
 
+  const heroRadius = 37, heroCircumference = 2*Math.PI*heroRadius;
   root().innerHTML = `
-    <div class="topbar">
-      <span class="topbar-link" id="accountLink">Account</span>
-      <div class="theme-toggle" id="themeToggleBtn">${themeToggleSvg()}</div>
-      <span class="topbar-link" id="signOutLink">Sign Out</span>
+    <div class="hero-header">
+      <div class="hero-nav">
+        <div class="hero-nav-group">
+          <button class="icon-btn" id="accountLink" title="Account">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </button>
+          <button class="icon-btn" id="themeToggleBtn" title="Theme">${themeToggleSvg()}</button>
+        </div>
+        <button class="icon-btn" id="signOutLink" title="Sign Out">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
+      </div>
+      <div class="hero-main">
+        <div>
+          <h1 class="hero-logo">GRIND<br>MODE</h1>
+          <div class="hero-badge"><span class="dot"></span>${SPLIT_LABEL[profile.days_per_week]} · ${GOAL_LABEL[profile.goal]}</div>
+        </div>
+        <div class="hero-ring-wrap">
+          <svg width="82" height="82" viewBox="0 0 82 82" style="transform:rotate(-90deg);">
+            <defs>
+              <linearGradient id="heroRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:var(--push)"/>
+                <stop offset="50%" style="stop-color:var(--gold)"/>
+                <stop offset="100%" style="stop-color:var(--pull)"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-track" cx="41" cy="41" r="${heroRadius}" stroke-width="6" fill="none"/>
+            <circle cx="41" cy="41" r="${heroRadius}" stroke-width="6" fill="none" stroke="url(#heroRingGrad)" stroke-dasharray="${heroCircumference}" stroke-dashoffset="${heroCircumference*(1-weekPct)}" stroke-linecap="round"/>
+          </svg>
+          <div class="hero-ring-label">
+            <span class="hero-pct">${Math.round(weekPct*100)}%</span>
+            <span class="hero-pct-sub">This Week</span>
+          </div>
+        </div>
+      </div>
     </div>
-    <header>
-      <div class="title-block">
-        <h1>GRIND<br>MODE</h1>
-        <p>${SPLIT_LABEL[profile.days_per_week]} · ${GOAL_LABEL[profile.goal]}</p>
-      </div>
-      <div class="ring-wrap">
-        <svg width="58" height="58" style="position:absolute; top:0; left:0; transform:rotate(-90deg);">
-          <circle class="ring-track" cx="29" cy="29" r="25" stroke-width="5" fill="none"/>
-          <circle class="ring-fill" cx="29" cy="29" r="25" stroke-width="5" fill="none" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference*(1-weekPct)}" stroke-linecap="round"/>
-        </svg>
-        <div class="ring"><span>${Math.round(weekPct*100)}%</span></div>
-      </div>
-    </header>
 
     <div class="save-status" id="saveStatus"></div>
 
@@ -1086,16 +1316,6 @@ function renderDashboard(){
       <p class="diet-note">This is general guidance, not personalized medical or dietetic advice — a registered dietitian can tailor exact numbers to you.</p>
     </div>
 
-    <div class="ai-card">
-      <h3>ASK YOUR COACH</h3>
-      <div class="ai-sub">Quick questions on form, nutrition, or general fitness. Not a substitute for professional medical advice.</div>
-      <div class="ai-input-row">
-        <textarea id="coachInput" rows="2" placeholder="e.g. What's a good warmup before leg day?"></textarea>
-        <button class="ai-btn" id="coachAskBtn" ${coachLoading?'disabled':''}>${coachLoading?'…':'Ask'}</button>
-      </div>
-      ${coachAnswer ? `<div class="ai-answer">${coachAnswer}</div>` : ''}
-    </div>
-
     <div class="day-tabs" id="dayTabs" style="grid-template-columns:repeat(${N},1fr);"></div>
     <div class="swipe-nav">
       <span class="swipe-chevron ${hasPrev?'':'disabled'}" id="prevDayBtn">${hasPrev ? '‹ '+plan.days[dayIdx-1].title : ''}</span>
@@ -1121,7 +1341,7 @@ function renderDashboard(){
     btn.style.setProperty('--accent', `var(--${dd.split})`);
     const flag = dd.day===upNext ? `<span class="today-flag">Up Next</span>` : '';
     btn.innerHTML = `${flag}<span class="dnum">${dd.day}</span><span class="dsplit">${dd.split}</span><span class="dot"></span>`;
-    btn.onclick = ()=>{ activeDay = dd.day; renderDashboard(); };
+    btn.onclick = ()=> goToDay(dd.day);
     tabsWrap.appendChild(btn);
   });
 
@@ -1137,16 +1357,24 @@ function renderDashboard(){
       <div class="progress-bar"><div class="progress-fill" style="width:${dayPct*100}%"></div></div>
     </div>`;
   const cards = d.exercises.map(ex=>{
+    if(editingExId === ex.id){
+      return `
+      <div class="ex-card" style="align-items:stretch;">
+        <div class="rail ${d.split}"></div>
+        <div class="ex-main">${editExerciseFormHtml(ex)}</div>
+      </div>`;
+    }
     const s = trackerState[ex.id] || {};
     const setsChecked = (Array.isArray(s.setsChecked) && s.setsChecked.length===ex.sets) ? s.setsChecked : new Array(ex.sets).fill(false);
     const isDone = isExerciseDone(ex, s);
+    const confirmingDelete = deleteConfirmExId === ex.id;
     return `
     <div class="ex-card ${isDone?'done':''}">
       <div class="rail ${d.split}"></div>
       <div class="ex-main">
         <div class="ex-top">
           <div>
-            <span class="ex-tag">${ex.tag} · ${ex.sets} sets × ${ex.reps}</span>
+            <span class="ex-tag">${ex.tag} · ${ex.sets} ${ex.sets===1?'set':'sets'} × ${ex.reps}</span>
             <div class="ex-name ${isDone?'done-text':''}">${ex.name}</div>
           </div>
           <div class="status-badge ${isDone?'checked':''}">
@@ -1166,6 +1394,18 @@ function renderDashboard(){
             </div>
           </div>
         </div>
+        ${confirmingDelete ? `
+          <div class="confirm-box">
+            Remove this exercise from today's plan?
+            <div class="row">
+              <button data-cancel-del="${ex.id}">Cancel</button>
+              <button class="danger" data-confirm-del="${ex.id}">Remove</button>
+            </div>
+          </div>` : `
+          <div class="ex-actions">
+            <span data-edit-ex="${ex.id}">Edit</span>
+            <span class="danger" data-del-ex="${ex.id}">Delete</span>
+          </div>`}
       </div>
     </div>`;
   }).join('');
@@ -1178,19 +1418,35 @@ function renderDashboard(){
         </div>
       </div>
     </div>` : '';
-  const aiAddRow = `
-    <div class="ai-add-row">
-      <label>Add an exercise to this day with AI</label>
-      <div class="ai-input-row">
-        <input type="text" id="addExInput" placeholder="e.g. cable face pulls for rear delts, 3x15">
-        <button class="ai-btn" id="addExBtn" ${addExLoading?'disabled':''}>${addExLoading?'…':'Add'}</button>
-      </div>
-      ${addExError ? `<div class="ai-answer" style="color:var(--bad);">${addExError}</div>` : ''}
-    </div>`;
-  document.getElementById('dayContent').innerHTML = header + `<div class="ex-list">${cards}${emptyState}</div>` + aiAddRow;
+  const addExSection = `<div class="add-ex-row" ${d.exercises.length===0?'style="border-top:none; padding-top:0;"':''}>
+    ${addFormOpen ? addExerciseFormHtml() : `<button class="btn-secondary" id="openAddForm">+ Add Exercise</button>`}
+  </div>`;
+  document.getElementById('dayContent').innerHTML = header + `<div class="ex-list">${cards}${emptyState}</div>` + addExSection;
   document.querySelectorAll('[data-set]').forEach(el=>{
     el.onclick = ()=>{ const [exId,idx,tot] = el.dataset.set.split('|'); toggleSet(exId, parseInt(idx,10), parseInt(tot,10)); };
   });
+  document.querySelectorAll('[data-edit-ex]').forEach(el=>{
+    el.onclick = ()=>{ editingExId = el.dataset.editEx; deleteConfirmExId = null; addFormOpen = false; renderDashboard(); };
+  });
+  document.querySelectorAll('[data-del-ex]').forEach(el=>{
+    el.onclick = ()=>{ deleteConfirmExId = el.dataset.delEx; editingExId = null; renderDashboard(); };
+  });
+  document.querySelectorAll('[data-cancel-del]').forEach(el=>{
+    el.onclick = ()=>{ deleteConfirmExId = null; renderDashboard(); };
+  });
+  document.querySelectorAll('[data-confirm-del]').forEach(el=>{
+    el.onclick = ()=>{ handleDeleteEx(el.dataset.confirmDel); };
+  });
+  const cancelEditBtn = document.getElementById('cancelEditEx');
+  if(cancelEditBtn) cancelEditBtn.onclick = ()=>{ editingExId = null; renderDashboard(); };
+  const saveEditBtn = document.getElementById('saveEditEx');
+  if(saveEditBtn) saveEditBtn.onclick = ()=> handleSaveEditEx(editingExId);
+  const openAddBtn = document.getElementById('openAddForm');
+  if(openAddBtn) openAddBtn.onclick = ()=>{ addFormOpen = true; editingExId = null; renderDashboard(); };
+  const cancelAddBtn = document.getElementById('cancelAddEx');
+  if(cancelAddBtn) cancelAddBtn.onclick = ()=>{ addFormOpen = false; hideError(); renderDashboard(); };
+  const saveAddBtn = document.getElementById('saveAddEx');
+  if(saveAddBtn) saveAddBtn.onclick = handleSaveAddEx;
 
   // week grid
   const weekGrid = document.getElementById('weekGrid');
@@ -1206,8 +1462,8 @@ function renderDashboard(){
   document.getElementById('accountLink').onclick = ()=>{ APP_STATE='account'; render(); };
   document.getElementById('themeToggleBtn').onclick = toggleTheme;
   document.getElementById('signOutLink').onclick = handleSignOut;
-  if(hasPrev) document.getElementById('prevDayBtn').onclick = ()=>{ activeDay = plan.days[dayIdx-1].day; renderDashboard(); };
-  if(hasNext) document.getElementById('nextDayBtn').onclick = ()=>{ activeDay = plan.days[dayIdx+1].day; renderDashboard(); };
+  if(hasPrev) document.getElementById('prevDayBtn').onclick = ()=> goToDay(plan.days[dayIdx-1].day);
+  if(hasNext) document.getElementById('nextDayBtn').onclick = ()=> goToDay(plan.days[dayIdx+1].day);
   const wBtn = document.getElementById('logWeightBtn');
   const wInp = document.getElementById('weightInput');
   wBtn.onclick = ()=>{ logWeight(wInp.value); wInp.value=''; };
@@ -1217,45 +1473,6 @@ function renderDashboard(){
     await saveAll();
     renderDashboard();
   };
-  document.getElementById('coachAskBtn').onclick = async ()=>{
-    const inp = document.getElementById('coachInput');
-    const q = inp.value.trim();
-    if(!q) return;
-    coachLoading = true; coachAnswer=''; renderDashboard();
-    try{ coachAnswer = await callClaude('ask_question', q, null); }
-    catch(e){ coachAnswer = 'Sorry — ' + e.message; }
-    coachLoading = false; renderDashboard();
-  };
-  const addExBtnEl = document.getElementById('addExBtn');
-  if(addExBtnEl){
-    addExBtnEl.onclick = async ()=>{
-      const inp = document.getElementById('addExInput');
-      const desc = inp.value.trim();
-      if(!desc) return;
-      addExLoading = true; addExError=''; renderDashboard();
-      try{
-        const raw = await callClaude('add_workout', desc, {dayTitle:d.title, split:d.split, existing:d.exercises.map(e=>e.name)});
-        const parsed = JSON.parse(stripCodeFences(raw));
-        const newEx = {
-          id: 'ai_' + Date.now(),
-          name: String(parsed.name||'Custom Exercise').slice(0,60),
-          tag: String(parsed.tag||'Custom').slice(0,30),
-          sets: Math.max(1, Math.min(10, parseInt(parsed.sets,10) || 3)),
-          reps: String(parsed.reps||'8-12').slice(0,20),
-          weight: parsed.weight==null ? '—' : String(parsed.weight).slice(0,10),
-          unit: String(parsed.unit||'lbs').slice(0,10),
-          muscles: String(parsed.muscles||'').slice(0,200),
-        };
-        const dayObj = plan.days.find(x=>x.day===activeDay);
-        dayObj.exercises.push(newEx);
-        await saveAll();
-      }catch(e){
-        addExError = "Couldn't add that — " + e.message;
-      }
-      addExLoading = false;
-      renderDashboard();
-    };
-  }
   renderSaveStatus();
 }
 
@@ -1305,10 +1522,14 @@ function renderAccount(){
   const memberSince = new Date(profile.created_at).toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'});
 
   root().innerHTML = `
-    <div class="topbar">
-      <span class="topbar-link" id="backToDash">‹ Back</span>
-      <div class="theme-toggle" id="themeToggleBtn">${themeToggleSvg()}</div>
-      <span class="topbar-link" id="signOutLink">Sign Out</span>
+    <div class="topbar" style="margin-bottom:16px;">
+      <button class="icon-btn" id="backToDash" title="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <button class="icon-btn" id="themeToggleBtn" title="Theme">${themeToggleSvg()}</button>
+      <button class="icon-btn" id="signOutLink" title="Sign Out">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      </button>
     </div>
     <div class="title-block" style="margin-bottom:16px;"><h1>ACCOUNT</h1><p>Your details & history</p></div>
 
@@ -1392,14 +1613,14 @@ function setupSwipeGestures(){
     touchStartY = e.touches[0].clientY;
   }, {passive:true});
   document.addEventListener('touchend', (e)=>{
-    if(touchStartX===null || APP_STATE!=='dashboard' || !plan){ touchStartX = null; return; }
+    if(touchStartX===null || APP_STATE!=='dashboard' || !plan || addFormOpen || editingExId){ touchStartX = null; return; }
     const dx = e.changedTouches[0].clientX - touchStartX;
     const dy = e.changedTouches[0].clientY - touchStartY;
     touchStartX = null;
     if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)*1.5) return;
     const idx = plan.days.findIndex(dd=>dd.day===activeDay);
-    if(dx < 0 && idx < plan.days.length-1){ activeDay = plan.days[idx+1].day; renderDashboard(); }
-    else if(dx > 0 && idx > 0){ activeDay = plan.days[idx-1].day; renderDashboard(); }
+    if(dx < 0 && idx < plan.days.length-1) goToDay(plan.days[idx+1].day);
+    else if(dx > 0 && idx > 0) goToDay(plan.days[idx-1].day);
   }, {passive:true});
 }
 
