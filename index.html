@@ -390,6 +390,7 @@ function themeToggleSvg(){
 /* Capture the URL hash BEFORE supabase-js parses/clears it, so we can tell
    whether this page load is the result of a just-clicked confirmation link. */
 const arrivedViaEmailConfirm = /type=signup/.test(window.location.hash) || /type=signup/.test(window.location.search);
+const arrivedViaPasswordRecovery = /type=recovery/.test(window.location.hash) || /type=recovery/.test(window.location.search);
 
 function showToast(message){
   const el = document.createElement('div');
@@ -770,6 +771,32 @@ async function handleSignIn(email, password){
   if(error){ showError(error.message); return; }
   currentUser = data.user;
   await loadProfileAndData();
+}
+
+async function handleForgotPassword(email){
+  hideError();
+  if(!isValidEmail(email)){ showError('Enter a valid email address.'); return; }
+  const {error} = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname,
+  });
+  if(error){ showError(error.message); return; }
+  pendingEmail = email;
+  APP_STATE = 'reset-email-sent';
+  render();
+}
+
+// Shared by the "click the emailed link" recovery flow and the "change it
+// from Account while already signed in" flow. Returns true on success so
+// each caller can decide what to do next (navigate vs. just close a form).
+async function handleUpdatePassword(newPw, confirmPw){
+  hideError();
+  if(!newPw || newPw.length < 6){ showError('Password must be at least 6 characters.'); return false; }
+  if(newPw !== confirmPw){ showError("Passwords don't match."); return false; }
+  const {error} = await sb.auth.updateUser({ password: newPw });
+  if(error){ showError(error.message); return false; }
+  hideError();
+  showToast('✓ Password updated');
+  return true;
 }
 
 async function handleSignOut(){
@@ -1564,9 +1591,11 @@ function renderSignIn(){
       <div class="auth-field"><label>Password</label><input type="password" id="siPassword" autocomplete="current-password"></div>
       <button class="auth-submit" id="siSubmit">Sign In</button>
       <div class="auth-switch">New here? <a id="toSignUp">Create an account</a></div>
+      <div class="auth-switch">Forgot your password? <a id="toForgotPassword">Reset it</a></div>
     </div>`;
   document.getElementById('siSubmit').onclick = ()=> handleSignIn(document.getElementById('siEmail').value.trim(), document.getElementById('siPassword').value);
   document.getElementById('toSignUp').onclick = ()=>{ hideError(); APP_STATE='signup'; render(); };
+  document.getElementById('toForgotPassword').onclick = ()=>{ hideError(); APP_STATE='forgot-password'; render(); };
 }
 
 function renderSignUp(){
@@ -1593,6 +1622,45 @@ function renderCheckEmail(){
       <button class="auth-submit" id="backToSignIn">Back to Sign In</button>
     </div>`;
   document.getElementById('backToSignIn').onclick = ()=>{ hideError(); APP_STATE='signin'; render(); };
+}
+
+function renderForgotPassword(){
+  root().innerHTML = `
+    <div class="auth-card">
+      <h2>Reset Password</h2>
+      <p class="sub">Enter your account email and we'll send you a link to set a new password.</p>
+      <div class="auth-field"><label>Email</label><input type="email" id="fpEmail" autocomplete="email"></div>
+      <button class="auth-submit" id="fpSubmit">Send Reset Link</button>
+      <div class="auth-switch">Remembered it? <a id="toSignInFromFp">Sign in</a></div>
+    </div>`;
+  document.getElementById('fpSubmit').onclick = ()=> handleForgotPassword(document.getElementById('fpEmail').value.trim());
+  document.getElementById('toSignInFromFp').onclick = ()=>{ hideError(); APP_STATE='signin'; render(); };
+}
+
+function renderResetEmailSent(){
+  root().innerHTML = `
+    <div class="info-card">
+      <div class="eyebrow">Almost there</div>
+      <h2>Reset Link Sent</h2>
+      <p>We sent a password reset link to <b style="color:var(--ink)">${pendingEmail}</b>. Click it to choose a new password, then you'll be signed in automatically.</p>
+      <button class="auth-submit" id="backToSignInFromReset">Back to Sign In</button>
+    </div>`;
+  document.getElementById('backToSignInFromReset').onclick = ()=>{ hideError(); APP_STATE='signin'; render(); };
+}
+
+function renderResetPassword(){
+  root().innerHTML = `
+    <div class="auth-card">
+      <h2>Set New Password</h2>
+      <p class="sub">Choose a new password for your account.</p>
+      <div class="auth-field"><label>New Password</label><input type="password" id="rpPassword" autocomplete="new-password"></div>
+      <div class="auth-field"><label>Confirm New Password</label><input type="password" id="rpPassword2" autocomplete="new-password"></div>
+      <button class="auth-submit" id="rpSubmit">Update Password</button>
+    </div>`;
+  document.getElementById('rpSubmit').onclick = async ()=>{
+    const ok = await handleUpdatePassword(document.getElementById('rpPassword').value, document.getElementById('rpPassword2').value);
+    if(ok) await loadProfileAndData();
+  };
 }
 
 function renderAccount(){
@@ -1639,8 +1707,10 @@ function renderAccount(){
 
     <div class="account-actions" style="margin-top:20px;">
       <button class="btn-secondary" id="editPlanBtn">Edit Plan</button>
+      <button class="btn-secondary" id="changePasswordBtn">Change Password</button>
       <button class="btn-danger" id="deleteDataBtn">Delete My Data</button>
     </div>
+    <div id="changePasswordArea"></div>
     <div id="deleteConfirmArea"></div>
   `;
 
@@ -1648,6 +1718,24 @@ function renderAccount(){
   document.getElementById('themeToggleBtn').onclick = toggleTheme;
   document.getElementById('signOutLink').onclick = handleSignOut;
   document.getElementById('editPlanBtn').onclick = startRetake;
+  document.getElementById('changePasswordBtn').onclick = ()=>{
+    document.getElementById('changePasswordArea').innerHTML = `
+      <div class="add-ex-row">
+        <label>New Password</label>
+        <input type="password" id="acctNewPw" autocomplete="new-password">
+        <label>Confirm New Password</label>
+        <input type="password" id="acctNewPw2" autocomplete="new-password">
+        <div class="q-nav" style="margin-top:14px;">
+          <button id="cancelChangePw">Cancel</button>
+          <button class="primary" id="saveChangePw">Update Password</button>
+        </div>
+      </div>`;
+    document.getElementById('cancelChangePw').onclick = ()=>{ hideError(); document.getElementById('changePasswordArea').innerHTML = ''; };
+    document.getElementById('saveChangePw').onclick = async ()=>{
+      const ok = await handleUpdatePassword(document.getElementById('acctNewPw').value, document.getElementById('acctNewPw2').value);
+      if(ok) document.getElementById('changePasswordArea').innerHTML = '';
+    };
+  };
   document.getElementById('deleteDataBtn').onclick = ()=>{
     deleteConfirmOpen = true;
     document.getElementById('deleteConfirmArea').innerHTML = `
@@ -1668,6 +1756,9 @@ function render(){
   else if(APP_STATE==='signin') renderSignIn();
   else if(APP_STATE==='signup') renderSignUp();
   else if(APP_STATE==='check-email') renderCheckEmail();
+  else if(APP_STATE==='forgot-password') renderForgotPassword();
+  else if(APP_STATE==='reset-email-sent') renderResetEmailSent();
+  else if(APP_STATE==='reset-password') renderResetPassword();
   else if(APP_STATE==='questionnaire') renderQuestionnaire();
   else if(APP_STATE==='dashboard') renderDashboard();
   else if(APP_STATE==='account') renderAccount();
@@ -1704,7 +1795,11 @@ function setupSwipeGestures(){
 
 async function init(){
   const {data:{session}} = await sb.auth.getSession();
-  if(session){
+  if(arrivedViaPasswordRecovery){
+    currentUser = session ? session.user : null;
+    APP_STATE = 'reset-password';
+    render();
+  } else if(session){
     currentUser = session.user;
     await loadProfileAndData();
     maybeShowConfirmToast();
@@ -1712,7 +1807,11 @@ async function init(){
   else { APP_STATE = 'signin'; render(); }
 
   sb.auth.onAuthStateChange((event, session)=>{
-    if(event==='SIGNED_IN' && session && (!currentUser || currentUser.id!==session.user.id)){
+    if(event === 'PASSWORD_RECOVERY'){
+      currentUser = session.user;
+      APP_STATE = 'reset-password';
+      render();
+    } else if(event==='SIGNED_IN' && session && (!currentUser || currentUser.id!==session.user.id)){
       currentUser = session.user;
       loadProfileAndData().then(maybeShowConfirmToast);
     } else if(event==='SIGNED_OUT'){
