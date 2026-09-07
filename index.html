@@ -304,7 +304,6 @@
   .add-ex-row input:focus, .add-ex-row select:focus{outline:none; border-color:var(--gold);}
   .add-ex-row .row2{display:flex; gap:10px;}
   .add-ex-row .row2 > div{flex:1; min-width:0;}
-  .edit-ex-form{padding-top:2px;}
 
   /* --- Hero header (new school) --- */
   .hero-header{
@@ -1125,7 +1124,7 @@ function editExerciseFormHtml(ex){
     name: ex.name, muscle: muscleKeyFromTag(ex.tag), sets: ex.sets, reps: ex.reps,
     weight: ex.unit==='bodyweight' ? '' : ex.weight, unit: ex.unit,
   };
-  return `<div class="edit-ex-form">
+  return `<div class="add-ex-row">
     ${exerciseFormFieldsHtml('editEx', defaults)}
     <div class="q-nav" style="margin-top:14px;">
       <button id="cancelEditEx">Cancel</button>
@@ -1373,11 +1372,7 @@ function renderDashboard(){
     </div>`;
   const cards = d.exercises.map(ex=>{
     if(editingExId === ex.id){
-      return `
-      <div class="ex-card" style="align-items:stretch;">
-        <div class="rail ${d.split}"></div>
-        <div class="ex-main">${editExerciseFormHtml(ex)}</div>
-      </div>`;
+      return editExerciseFormHtml(ex);
     }
     const s = trackerState[ex.id] || {};
     const setsChecked = (Array.isArray(s.setsChecked) && s.setsChecked.length===ex.sets) ? s.setsChecked : new Array(ex.sets).fill(false);
@@ -1433,9 +1428,9 @@ function renderDashboard(){
         </div>
       </div>
     </div>` : '';
-  const addExSection = `<div class="add-ex-row" ${d.exercises.length===0?'style="border-top:none; padding-top:0;"':''}>
-    ${addFormOpen ? addExerciseFormHtml() : `<button class="btn-secondary" id="openAddForm">+ Add Exercise</button>`}
-  </div>`;
+  const addExSection = addFormOpen
+    ? addExerciseFormHtml()
+    : `<div class="add-ex-row" ${d.exercises.length===0?'style="border-top:none; padding-top:0;"':''}><button class="btn-secondary" id="openAddForm">+ Add Exercise</button></div>`;
   document.getElementById('dayContent').innerHTML = header + `<div class="ex-list">${cards}${emptyState}</div>` + addExSection;
   document.querySelectorAll('[data-set]').forEach(el=>{
     el.onclick = ()=>{ const [exId,idx,tot] = el.dataset.set.split('|'); toggleSet(exId, parseInt(idx,10), parseInt(tot,10)); };
