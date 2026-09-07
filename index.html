@@ -252,10 +252,13 @@
 
   .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
 
-  .plan-summary{background:var(--card); border:1.5px solid var(--gold-dim); border-radius:16px; padding:16px 18px; margin-bottom:16px;}
-  .plan-summary-row{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); padding:6px 0; border-bottom:1px dashed var(--line);}
-  .plan-summary-row:last-child{border-bottom:none;}
-  .plan-summary-row b{color:var(--ink);}
+  .plan-stats-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
+  .plan-stat-card{background:var(--card); border:1.5px solid var(--gold-dim); border-radius:14px; padding:13px 14px; display:flex; align-items:center; gap:11px;}
+  .plan-stat-icon{width:36px; height:36px; border-radius:10px; background:var(--bg-2); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .plan-stat-icon svg{width:18px; height:18px; stroke:var(--gold);}
+  .plan-stat-text{min-width:0;}
+  .plan-stat-label{font-size:9px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); font-weight:700; display:block;}
+  .plan-stat-value{font-family:'Teko',sans-serif; font-size:15px; font-weight:700; color:var(--ink); letter-spacing:0.2px; line-height:1.2; margin-top:2px; display:block;}
 
   /* --- Light theme override --- */
   html[data-theme="light"]{
@@ -1260,11 +1263,23 @@ function renderDashboard(){
 
     <div class="save-status" id="saveStatus"></div>
 
-    <div class="plan-summary">
-      <div class="plan-summary-row"><span>Goal</span><b>${GOAL_LABEL[profile.goal]}</b></div>
-      <div class="plan-summary-row"><span>Split</span><b>${SPLIT_LABEL[profile.days_per_week]}</b></div>
-      <div class="plan-summary-row"><span>Equipment</span><b>${EQUIP_LABEL[profile.equipment]}</b></div>
-      <div class="plan-summary-row"><span>Diet</span><b>${DIET_LABEL[profile.diet]}</b></div>
+    <div class="plan-stats-grid">
+      <div class="plan-stat-card">
+        <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></div>
+        <div class="plan-stat-text"><span class="plan-stat-label">Goal</span><span class="plan-stat-value">${GOAL_LABEL[profile.goal]}</span></div>
+      </div>
+      <div class="plan-stat-card">
+        <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+        <div class="plan-stat-text"><span class="plan-stat-label">Split</span><span class="plan-stat-value">${SPLIT_LABEL[profile.days_per_week]}</span></div>
+      </div>
+      <div class="plan-stat-card">
+        <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="9" width="3" height="6" rx="1"></rect><rect x="4" y="7" width="2" height="10" rx="1"></rect><line x1="6" y1="12" x2="18" y2="12"></line><rect x="18" y="7" width="2" height="10" rx="1"></rect><rect x="20" y="9" width="3" height="6" rx="1"></rect></svg></div>
+        <div class="plan-stat-text"><span class="plan-stat-label">Equipment</span><span class="plan-stat-value">${EQUIP_LABEL[profile.equipment]}</span></div>
+      </div>
+      <div class="plan-stat-card">
+        <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg></div>
+        <div class="plan-stat-text"><span class="plan-stat-label">Diet</span><span class="plan-stat-value">${DIET_LABEL[profile.diet]}</span></div>
+      </div>
     </div>
 
     <div class="stats-strip">
