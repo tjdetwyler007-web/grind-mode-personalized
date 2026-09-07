@@ -288,6 +288,16 @@
   .confirm-box button{flex:1; padding:10px; border-radius:10px; font-family:'Teko',sans-serif; font-size:13px; text-transform:uppercase; cursor:pointer; border:1.5px solid var(--line); background:var(--bg-2); color:var(--ink);}
   .confirm-box button.danger{background:var(--bad); border-color:var(--bad); color:#fff; font-weight:800;}
 
+  /* --- Accordion toggles (weight history, diet details) --- */
+  .accordion-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    margin-top:14px; padding-top:12px; border-top:1px dashed var(--line);
+    font-family:'Teko',sans-serif; font-size:13px; font-weight:700; letter-spacing:0.3px;
+    color:var(--gold); text-transform:uppercase; cursor:pointer;
+  }
+  .accordion-toggle svg{width:14px; height:14px; stroke:var(--gold); transition:transform .2s ease;}
+  .accordion-toggle.open svg{transform:rotate(180deg);}
+
   /* --- Swipe chevrons --- */
   .swipe-nav{display:flex; justify-content:space-between; margin-bottom:8px;}
   .swipe-chevron{font-size:11px; color:var(--muted); font-weight:700; cursor:pointer; padding:4px 8px;}
@@ -721,6 +731,7 @@ let pendingEmail = '';
 let saveStatus = 'idle', lastSavedAt = null;
 let deleteConfirmOpen = false;
 let addFormOpen = false, editingExId = null, deleteConfirmExId = null;
+let weightDetailsOpen = false, dietDetailsOpen = false;
 
 function goToDay(dayNum){
   activeDay = dayNum;
@@ -1304,7 +1315,13 @@ function renderDashboard(){
         <input type="text" inputmode="decimal" id="weightInput" placeholder="Log today's weight (lbs)">
         <button id="logWeightBtn">Log</button>
       </div>
-      ${recentWeights.length ? `<div class="weight-history">${recentWeights.map(e=>`<div class="weight-history-row"><span>${formatShortDate(e.date)}</span><span>${e.weight} lbs</span></div>`).join('')}</div>` : ''}
+      ${recentWeights.length ? `
+        <div class="accordion-toggle ${weightDetailsOpen?'open':''}" id="weightDetailsToggle">
+          <span>${weightDetailsOpen?'Hide':'Show'} Weight History</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+        ${weightDetailsOpen ? `<div class="weight-history">${recentWeights.map(e=>`<div class="weight-history-row"><span>${formatShortDate(e.date)}</span><span>${e.weight} lbs</span></div>`).join('')}</div>` : ''}
+      ` : ''}
     </div>
 
     <div class="diet-card">
@@ -1320,14 +1337,20 @@ function renderDashboard(){
         <div class="macro-pill"><span class="macro-val">${macros.carbs}g</span><span class="macro-lbl">carbs</span></div>
         <div class="macro-pill"><span class="macro-val">${macros.fat}g</span><span class="macro-lbl">fat</span></div>
       </div>
-      <p class="diet-note">Estimated from your logged weight and activity level. Protein sits near 1g per lb of bodyweight. Adjust based on how your weight actually trends over a couple of weeks.</p>
-      <div class="diet-meals">
-        <div class="meal-row"><div class="meal-name">Breakfast</div><div class="meal-foods">${meals.breakfast}</div></div>
-        <div class="meal-row"><div class="meal-name">Lunch</div><div class="meal-foods">${meals.lunch}</div></div>
-        <div class="meal-row"><div class="meal-name">Dinner</div><div class="meal-foods">${meals.dinner}</div></div>
-        <div class="meal-row"><div class="meal-name">Snacks</div><div class="meal-foods">${meals.snacks}</div></div>
+      <div class="accordion-toggle ${dietDetailsOpen?'open':''}" id="dietDetailsToggle">
+        <span>${dietDetailsOpen?'Hide':'Show'} Meal Ideas &amp; Notes</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </div>
-      <p class="diet-note">This is general guidance, not personalized medical or dietetic advice — a registered dietitian can tailor exact numbers to you.</p>
+      ${dietDetailsOpen ? `
+        <p class="diet-note">Estimated from your logged weight and activity level. Protein sits near 1g per lb of bodyweight. Adjust based on how your weight actually trends over a couple of weeks.</p>
+        <div class="diet-meals">
+          <div class="meal-row"><div class="meal-name">Breakfast</div><div class="meal-foods">${meals.breakfast}</div></div>
+          <div class="meal-row"><div class="meal-name">Lunch</div><div class="meal-foods">${meals.lunch}</div></div>
+          <div class="meal-row"><div class="meal-name">Dinner</div><div class="meal-foods">${meals.dinner}</div></div>
+          <div class="meal-row"><div class="meal-name">Snacks</div><div class="meal-foods">${meals.snacks}</div></div>
+        </div>
+        <p class="diet-note">This is general guidance, not personalized medical or dietetic advice — a registered dietitian can tailor exact numbers to you.</p>
+      ` : ''}
     </div>
 
     <div class="day-tabs" id="dayTabs" style="grid-template-columns:repeat(${N},1fr);"></div>
@@ -1478,6 +1501,10 @@ function renderDashboard(){
   const wInp = document.getElementById('weightInput');
   wBtn.onclick = ()=>{ logWeight(wInp.value); wInp.value=''; };
   wInp.addEventListener('keydown', e=>{ if(e.key==='Enter') wBtn.click(); });
+  const weightToggle = document.getElementById('weightDetailsToggle');
+  if(weightToggle) weightToggle.onclick = ()=>{ weightDetailsOpen = !weightDetailsOpen; renderDashboard(); };
+  const dietToggle = document.getElementById('dietDetailsToggle');
+  if(dietToggle) dietToggle.onclick = ()=>{ dietDetailsOpen = !dietDetailsOpen; renderDashboard(); };
   document.getElementById('resetBtn').onclick = async ()=>{
     plan.days.forEach(dd=> dd.exercises.forEach(ex=> delete trackerState[ex.id]));
     await saveAll();
