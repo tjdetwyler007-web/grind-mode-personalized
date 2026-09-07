@@ -288,6 +288,17 @@
   .confirm-box button{flex:1; padding:10px; border-radius:10px; font-family:'Teko',sans-serif; font-size:13px; text-transform:uppercase; cursor:pointer; border:1.5px solid var(--line); background:var(--bg-2); color:var(--ink);}
   .confirm-box button.danger{background:var(--bad); border-color:var(--bad); color:#fff; font-weight:800;}
 
+  /* --- Show/hide password toggle --- */
+  .pw-wrap{position:relative;}
+  .pw-wrap input{padding-right:40px;}
+  .pw-toggle{
+    position:absolute; right:2px; top:50%; transform:translateY(-50%);
+    width:32px; height:32px; border:none; background:none; cursor:pointer; padding:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .pw-toggle svg{width:16px; height:16px; stroke:var(--muted);}
+  .pw-toggle:active svg{stroke:var(--gold);}
+
   /* --- Accordion toggles (weight history, diet details) --- */
   .accordion-toggle{
     display:flex; align-items:center; justify-content:center; gap:6px;
@@ -407,6 +418,31 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
 function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+/* ============================== SHOW/HIDE PASSWORD ============================== */
+const EYE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+const EYE_OFF_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+
+// Builds a labeled password field with a show/hide eye toggle. Used by every
+// password input in the app so the behavior and markup stay consistent.
+function passwordFieldHtml(label, id, autocomplete){
+  return `<label>${label}</label>
+    <div class="pw-wrap">
+      <input type="password" id="${id}" autocomplete="${autocomplete}">
+      <button type="button" class="pw-toggle" title="Show password">${EYE_SVG}</button>
+    </div>`;
+}
+function togglePasswordField(btn){
+  const input = btn.closest('.pw-wrap').querySelector('input');
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  btn.innerHTML = isHidden ? EYE_OFF_SVG : EYE_SVG;
+  btn.title = isHidden ? 'Hide password' : 'Show password';
+}
+// Call after rendering any screen containing password fields.
+function wirePasswordToggles(){
+  document.querySelectorAll('.pw-toggle').forEach(btn=>{ btn.onclick = ()=> togglePasswordField(btn); });
+}
 
 function showError(message){
   const banner = document.getElementById('errorBanner');
@@ -1588,7 +1624,7 @@ function renderSignIn(){
       <h2>GRIND MODE</h2>
       <p class="sub">Sign in to pick up your plan where you left off.</p>
       <div class="auth-field"><label>Email</label><input type="email" id="siEmail" autocomplete="email"></div>
-      <div class="auth-field"><label>Password</label><input type="password" id="siPassword" autocomplete="current-password"></div>
+      <div class="auth-field">${passwordFieldHtml('Password', 'siPassword', 'current-password')}</div>
       <button class="auth-submit" id="siSubmit">Sign In</button>
       <div class="auth-switch">New here? <a id="toSignUp">Create an account</a></div>
       <div class="auth-switch">Forgot your password? <a id="toForgotPassword">Reset it</a></div>
@@ -1596,6 +1632,7 @@ function renderSignIn(){
   document.getElementById('siSubmit').onclick = ()=> handleSignIn(document.getElementById('siEmail').value.trim(), document.getElementById('siPassword').value);
   document.getElementById('toSignUp').onclick = ()=>{ hideError(); APP_STATE='signup'; render(); };
   document.getElementById('toForgotPassword').onclick = ()=>{ hideError(); APP_STATE='forgot-password'; render(); };
+  wirePasswordToggles();
 }
 
 function renderSignUp(){
@@ -1604,13 +1641,14 @@ function renderSignUp(){
       <h2>Create Account</h2>
       <p class="sub">We'll send a confirmation link to your email before your account activates.</p>
       <div class="auth-field"><label>Email</label><input type="email" id="suEmail" autocomplete="email"></div>
-      <div class="auth-field"><label>Password</label><input type="password" id="suPassword" autocomplete="new-password"></div>
-      <div class="auth-field"><label>Confirm Password</label><input type="password" id="suPassword2" autocomplete="new-password"></div>
+      <div class="auth-field">${passwordFieldHtml('Password', 'suPassword', 'new-password')}</div>
+      <div class="auth-field">${passwordFieldHtml('Confirm Password', 'suPassword2', 'new-password')}</div>
       <button class="auth-submit" id="suSubmit">Create Account</button>
       <div class="auth-switch">Already have an account? <a id="toSignIn">Sign in</a></div>
     </div>`;
   document.getElementById('suSubmit').onclick = ()=> handleSignUp(document.getElementById('suEmail').value.trim(), document.getElementById('suPassword').value, document.getElementById('suPassword2').value);
   document.getElementById('toSignIn').onclick = ()=>{ hideError(); APP_STATE='signin'; render(); };
+  wirePasswordToggles();
 }
 
 function renderCheckEmail(){
@@ -1653,14 +1691,15 @@ function renderResetPassword(){
     <div class="auth-card">
       <h2>Set New Password</h2>
       <p class="sub">Choose a new password for your account.</p>
-      <div class="auth-field"><label>New Password</label><input type="password" id="rpPassword" autocomplete="new-password"></div>
-      <div class="auth-field"><label>Confirm New Password</label><input type="password" id="rpPassword2" autocomplete="new-password"></div>
+      <div class="auth-field">${passwordFieldHtml('New Password', 'rpPassword', 'new-password')}</div>
+      <div class="auth-field">${passwordFieldHtml('Confirm New Password', 'rpPassword2', 'new-password')}</div>
       <button class="auth-submit" id="rpSubmit">Update Password</button>
     </div>`;
   document.getElementById('rpSubmit').onclick = async ()=>{
     const ok = await handleUpdatePassword(document.getElementById('rpPassword').value, document.getElementById('rpPassword2').value);
     if(ok) await loadProfileAndData();
   };
+  wirePasswordToggles();
 }
 
 function renderAccount(){
@@ -1721,10 +1760,8 @@ function renderAccount(){
   document.getElementById('changePasswordBtn').onclick = ()=>{
     document.getElementById('changePasswordArea').innerHTML = `
       <div class="add-ex-row">
-        <label>New Password</label>
-        <input type="password" id="acctNewPw" autocomplete="new-password">
-        <label>Confirm New Password</label>
-        <input type="password" id="acctNewPw2" autocomplete="new-password">
+        ${passwordFieldHtml('New Password', 'acctNewPw', 'new-password')}
+        ${passwordFieldHtml('Confirm New Password', 'acctNewPw2', 'new-password')}
         <div class="q-nav" style="margin-top:14px;">
           <button id="cancelChangePw">Cancel</button>
           <button class="primary" id="saveChangePw">Update Password</button>
@@ -1735,6 +1772,7 @@ function renderAccount(){
       const ok = await handleUpdatePassword(document.getElementById('acctNewPw').value, document.getElementById('acctNewPw2').value);
       if(ok) document.getElementById('changePasswordArea').innerHTML = '';
     };
+    wirePasswordToggles();
   };
   document.getElementById('deleteDataBtn').onclick = ()=>{
     deleteConfirmOpen = true;
