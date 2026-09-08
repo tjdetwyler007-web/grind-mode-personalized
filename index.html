@@ -92,22 +92,65 @@
   .day-tab[data-split="legs"] .dnum{color:var(--legs);}
 
   .day-header{border-radius:16px; padding:20px 20px 18px; margin-bottom:16px; position:relative; overflow:hidden; border:1.5px solid var(--line);}
+  .day-header::before{
+    content:''; position:absolute; top:0; right:0; width:0; height:0;
+    border-style:solid; border-width:0 64px 64px 0;
+    border-color:transparent rgba(255,255,255,0.07) transparent transparent;
+    pointer-events:none; z-index:0;
+  }
+  .day-header::after{
+    content:''; position:absolute; inset:0;
+    background:repeating-linear-gradient(115deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 2px, transparent 2px, transparent 16px);
+    pointer-events:none; z-index:0;
+  }
+  .day-header > *{position:relative; z-index:1;}
   .day-header.push{background:linear-gradient(135deg, var(--push-bg), var(--card) 75%); border-color:var(--push-line);}
   .day-header.pull{background:linear-gradient(135deg, var(--pull-bg), var(--card) 75%); border-color:var(--pull-line);}
   .day-header.legs{background:linear-gradient(135deg, var(--legs-bg), var(--card) 75%); border-color:var(--legs-line);}
   .day-header .eyebrow{font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-weight:700; display:flex; align-items:center; gap:8px;}
   .day-header .eyebrow .today-pill{background:var(--gold); color:#161616; font-size:9px; padding:2px 8px; border-radius:20px; letter-spacing:0.5px; font-weight:800;}
   .day-header h2{font-family:'Bungee',sans-serif; font-size:28px; letter-spacing:0.3px; margin-top:6px; color:var(--ink); text-shadow:2px 2px 0 rgba(0,0,0,0.5);}
-  .day-header .tagline{font-family:'Teko',sans-serif; font-weight:600; font-size:17px; letter-spacing:0.5px; margin-top:2px;}
-  .day-header.push .tagline{color:var(--push);}
-  .day-header.pull .tagline{color:var(--pull);}
-  .day-header.legs .tagline{color:var(--legs);}
+  .day-header .tagline{
+    font-family:'Teko',sans-serif; font-weight:700; font-size:18px; letter-spacing:0.8px; margin-top:2px;
+    -webkit-text-stroke:0.5px rgba(0,0,0,0.4); text-transform:uppercase;
+  }
+  .day-header.push .tagline{color:var(--push); text-shadow:1.5px 1.5px 0 rgba(0,0,0,0.35);}
+  .day-header.pull .tagline{color:var(--pull); text-shadow:1.5px 1.5px 0 rgba(0,0,0,0.35);}
+  .day-header.legs .tagline{color:var(--legs); text-shadow:1.5px 1.5px 0 rgba(0,0,0,0.35);}
   .day-header .meta{display:flex; gap:14px; margin-top:9px; font-size:12.5px; color:var(--muted); font-family:'JetBrains Mono',monospace; font-weight:500;}
   .day-header .progress-bar{height:6px; border-radius:4px; background:rgba(255,255,255,0.08); margin-top:14px; overflow:hidden;}
   .day-header .progress-fill{height:100%; border-radius:4px; transition:width .3s ease;}
   .day-header.push .progress-fill{background:linear-gradient(90deg, var(--push), #FF8A5C); box-shadow:0 0 10px var(--push);}
   .day-header.pull .progress-fill{background:linear-gradient(90deg, var(--pull), #7FE3FF); box-shadow:0 0 10px var(--pull);}
   .day-header.legs .progress-fill{background:linear-gradient(90deg, var(--legs), #E0AFFF); box-shadow:0 0 10px var(--legs);}
+
+  /* --- Manga impact burst (day/week completion celebration) --- */
+  .manga-burst{
+    position:fixed; top:50%; left:50%; z-index:9999; pointer-events:none;
+    animation:mangaPop 1.6s cubic-bezier(.2,1,.3,1) forwards;
+  }
+  .manga-burst-shape{
+    position:absolute; top:50%; left:50%; width:340px; height:340px;
+    transform:translate(-50%,-50%);
+    background:repeating-conic-gradient(from 0deg, var(--gold) 0deg 4deg, transparent 4deg 14deg);
+    border-radius:50%; opacity:0.85; z-index:-1;
+  }
+  .manga-burst.big .manga-burst-shape{width:420px; height:420px; background:repeating-conic-gradient(from 0deg, var(--legs) 0deg 4deg, transparent 4deg 14deg);}
+  .manga-burst-text{
+    position:relative; display:block; font-family:'Bungee',sans-serif; letter-spacing:0.5px;
+    font-size:26px; color:#fff; -webkit-text-stroke:3px #0A0A0C; text-transform:uppercase;
+    text-shadow:4px 4px 0 var(--push), -1px -1px 0 #0A0A0C; padding:20px 34px; white-space:nowrap;
+    transform:translate(-50%,-50%) rotate(-6deg); top:50%; left:50%; position:absolute;
+  }
+  .manga-burst.big .manga-burst-text{font-size:30px; text-shadow:4px 4px 0 var(--legs), -1px -1px 0 #0A0A0C;}
+  @keyframes mangaPop{
+    0%{opacity:0;} 8%{opacity:1;}
+    0%,8%{ transform:translate(-50%,-50%) scale(0.35); }
+    22%{ transform:translate(-50%,-50%) scale(1.12); }
+    32%{ transform:translate(-50%,-50%) scale(1); }
+    80%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+    100%{ opacity:0; transform:translate(-50%,-50%) scale(1.05); }
+  }
 
   .ex-list{display:flex; flex-direction:column; gap:11px;}
   .ex-card{background:var(--card); border:1.5px solid var(--line); border-radius:14px; padding:14px 15px 14px 0; display:flex; gap:0; align-items:stretch; transition:border-color .15s ease, box-shadow .15s ease;}
@@ -288,6 +331,15 @@
   .confirm-box button{flex:1; padding:10px; border-radius:10px; font-family:'Teko',sans-serif; font-size:13px; text-transform:uppercase; cursor:pointer; border:1.5px solid var(--line); background:var(--bg-2); color:var(--ink);}
   .confirm-box button.danger{background:var(--bad); border-color:var(--bad); color:#fff; font-weight:800;}
 
+  /* --- Sign-in landing intro (tagline + feature grid) --- */
+  .landing-intro{margin-top:34px; margin-bottom:22px; text-align:center;}
+  .landing-tagline{font-family:'Bungee',sans-serif; font-size:15px; color:var(--gold); margin-top:14px; letter-spacing:0.3px; line-height:1.4; text-shadow:2px 2px 0 rgba(0,0,0,0.4);}
+  .landing-sub{font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.5; max-width:340px; margin-left:auto; margin-right:auto;}
+  .landing-features{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; text-align:left;}
+  .landing-feature{background:var(--card); border:1.5px solid var(--gold-dim); border-radius:14px; padding:13px; display:flex; align-items:flex-start; gap:10px;}
+  .landing-feature b{display:block; font-family:'Teko',sans-serif; font-size:14px; color:var(--ink); letter-spacing:0.2px; font-weight:700;}
+  .landing-feature span{display:block; font-size:10.5px; color:var(--muted); line-height:1.4; margin-top:2px;}
+
   /* --- Show/hide password toggle --- */
   .pw-wrap{position:relative;}
   .pw-wrap input{padding-right:40px;}
@@ -409,6 +461,17 @@ function showToast(message){
   el.style.cssText = 'background:var(--good-bg); border:1.5px solid var(--good); color:var(--ink); border-radius:10px; padding:11px 14px; margin-bottom:14px; font-size:13px; font-weight:600;';
   root().prepend(el);
   setTimeout(()=>{ el.remove(); }, 4000);
+}
+
+/* ============================== MANGA IMPACT BURST ============================== */
+const DAY_COMPLETE_PHRASES = ['DAY CRUSHED!', 'FULL CLEAR!', 'NAILED IT!', 'BEAST MODE!', 'BOOM! DONE!'];
+const WEEK_COMPLETE_PHRASES = ['WEEK CONQUERED!', 'PERFECT WEEK!', 'ALL CLEAR!'];
+function showMangaBurst(text, big){
+  const el = document.createElement('div');
+  el.className = 'manga-burst' + (big ? ' big' : '');
+  el.innerHTML = `<div class="manga-burst-shape"></div><span class="manga-burst-text">${text}</span>`;
+  document.body.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 1600);
 }
 
 /* ============================== SUPABASE ============================== */
@@ -1180,12 +1243,21 @@ async function logWeight(rawValue){
 let toggleSaveTimer = null;
 function toggleSet(day, exId, idx, total){
   const key = trackerKey(day, exId);
+  const wasDayComplete = dayProgress(day).pct === 1;
+  const wasWeekComplete = plan.days.every(d => dayProgress(d.day).pct === 1);
   if(!trackerState[key]) trackerState[key] = {};
   if(!Array.isArray(trackerState[key].setsChecked) || trackerState[key].setsChecked.length!==total){
     trackerState[key].setsChecked = new Array(total).fill(false);
   }
   trackerState[key].setsChecked[idx] = !trackerState[key].setsChecked[idx];
+  const nowDayComplete = dayProgress(day).pct === 1;
+  const nowWeekComplete = plan.days.every(d => dayProgress(d.day).pct === 1);
   renderDashboard();
+  if(!wasWeekComplete && nowWeekComplete){
+    showMangaBurst(WEEK_COMPLETE_PHRASES[Math.floor(Math.random()*WEEK_COMPLETE_PHRASES.length)], true);
+  } else if(!wasDayComplete && nowDayComplete){
+    showMangaBurst(DAY_COMPLETE_PHRASES[Math.floor(Math.random()*DAY_COMPLETE_PHRASES.length)]);
+  }
   clearTimeout(toggleSaveTimer);
   toggleSaveTimer = setTimeout(()=>{ saveAll(); }, 350);
 }
@@ -1620,9 +1692,32 @@ function renderDashboard(){
 /* ============================== AUTH / INFO SCREENS ============================== */
 function renderSignIn(){
   root().innerHTML = `
-    <div class="auth-card">
-      <h2>GRIND MODE</h2>
-      <p class="sub">Sign in to pick up your plan where you left off.</p>
+    <div class="landing-intro">
+      <div class="title-block" style="margin-top:0;"><h1>GRIND<br>MODE</h1></div>
+      <p class="landing-tagline">STOP GUESSING. START GRINDING.</p>
+      <p class="landing-sub">Tell us your goal — we'll build the plan, the diet, and the split. You bring the effort.</p>
+      <div class="landing-features">
+        <div class="landing-feature">
+          <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></div>
+          <div><b>Personalized Plans</b><span>Matched to your goal, experience, and equipment</span></div>
+        </div>
+        <div class="landing-feature">
+          <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+          <div><b>3–6 Day Splits</b><span>Full body, upper/lower, or push/pull/legs</span></div>
+        </div>
+        <div class="landing-feature">
+          <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg></div>
+          <div><b>Nutrition Built In</b><span>Daily macros and meal ideas for your diet</span></div>
+        </div>
+        <div class="landing-feature">
+          <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div>
+          <div><b>Track Everything</b><span>Log sets and weight, edit any workout, anytime</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="auth-card" style="margin-top:6px;">
+      <h2>Sign In</h2>
+      <p class="sub">Pick up your plan right where you left off.</p>
       <div class="auth-field"><label>Email</label><input type="email" id="siEmail" autocomplete="email"></div>
       <div class="auth-field">${passwordFieldHtml('Password', 'siPassword', 'current-password')}</div>
       <button class="auth-submit" id="siSubmit">Sign In</button>
