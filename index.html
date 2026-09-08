@@ -44,6 +44,17 @@
   body{padding-bottom:60px;}
   .wrap{max-width:640px; margin:0 auto; padding:22px 16px 0;}
 
+  .page-bg{
+    position:fixed; inset:0; z-index:-1;
+    background-image:url('https://images.pexels.com/photos/28320723/pexels-photo-28320723.jpeg?auto=compress&w=1600');
+    background-size:cover; background-position:center;
+    filter:grayscale(1) contrast(1.1) brightness(0.9);
+  }
+  .page-bg::after{
+    content:''; position:absolute; inset:0;
+    background:rgba(6,6,8,0.75);
+  }
+
   .error-banner{
     display:none; align-items:center; gap:10px;
     background:var(--bad-bg);
@@ -472,6 +483,7 @@
 </style>
 </head>
 <body>
+<div class="page-bg"></div>
 <div class="wrap">
   <div class="error-banner" id="errorBanner">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
