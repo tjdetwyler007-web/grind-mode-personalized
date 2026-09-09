@@ -931,7 +931,16 @@ async function handleSignIn(email, password){
   hideError();
   if(!isValidEmail(email)){ showError('Enter a valid email address.'); return; }
   const {data, error} = await sb.auth.signInWithPassword({email, password});
-  if(error){ showError(error.message); return; }
+  if(error){
+    if(error.message === 'Email not confirmed'){
+      pendingEmail = email;
+      APP_STATE = 'check-email';
+      render();
+      return;
+    }
+    showError(error.message);
+    return;
+  }
   currentUser = data.user;
   await loadProfileAndData();
 }
@@ -1823,10 +1832,20 @@ function renderCheckEmail(){
     <div class="info-card">
       <div class="eyebrow">Almost there</div>
       <h2>Check Your Email</h2>
-      <p>We sent a confirmation link to <b style="color:var(--ink)">${pendingEmail}</b>. Click it to activate your account, then come back and sign in.</p>
+      <p>We sent a confirmation link to <b style="color:var(--ink)">${pendingEmail}</b>. Click it to activate your account — you'll be signed in automatically and taken straight to your plan.</p>
       <button class="auth-submit" id="backToSignIn">Back to Sign In</button>
+      <div class="auth-switch">Didn't get it? <a id="resendConfirm">Resend confirmation email</a></div>
     </div>`;
   document.getElementById('backToSignIn').onclick = ()=>{ hideError(); APP_STATE='signin'; render(); };
+  document.getElementById('resendConfirm').onclick = async ()=>{
+    hideError();
+    const {error} = await sb.auth.resend({
+      type:'signup', email: pendingEmail,
+      options:{ emailRedirectTo: window.location.origin + window.location.pathname }
+    });
+    if(error){ showError(error.message); return; }
+    showToast('Confirmation email resent — check your inbox.');
+  };
 }
 
 function renderForgotPassword(){
