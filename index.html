@@ -17,6 +17,16 @@
     --muted: #8B8A94;
     --gold: #F2B705;
     --gold-dim: #4A3B0E;
+    /* These three stay constant across BOTH themes on purpose. The hero and
+       day-header cards always sit on a dark photo + dark scrim regardless of
+       whether the app is in light or dark mode -- only the surrounding page
+       changes. Text on those specific cards needs to stay light/vivid always;
+       using the theme-flipping --ink/--muted/--gold there made heading text
+       go near-black on a still-dark card the moment someone switched to
+       light mode. */
+    --on-photo-heading: #F5F3EC;
+    --on-photo-muted: #C9C7D1;
+    --on-photo-gold: #F2B705;
     --push: #FF3B30;
     --push-bg: #2E1210;
     --push-line: #5C2019;
@@ -131,9 +141,9 @@
   .day-header.push{background:linear-gradient(135deg, var(--push-bg), var(--card) 75%); border-color:var(--push-line);}
   .day-header.pull{background:linear-gradient(135deg, var(--pull-bg), var(--card) 75%); border-color:var(--pull-line);}
   .day-header.legs{background:linear-gradient(135deg, var(--legs-bg), var(--card) 75%); border-color:var(--legs-line);}
-  .day-header .eyebrow{font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-weight:700; display:flex; align-items:center; gap:8px;}
-  .day-header .eyebrow .today-pill{background:var(--gold); color:#161616; font-size:9px; padding:2px 8px; border-radius:20px; letter-spacing:0.5px; font-weight:800;}
-  .day-header h2{font-family:'Bungee',sans-serif; font-size:28px; letter-spacing:0.3px; margin-top:6px; color:var(--ink); text-shadow:2px 2px 0 rgba(0,0,0,0.5);}
+  .day-header .eyebrow{font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--on-photo-muted); font-weight:700; display:flex; align-items:center; gap:8px;}
+  .day-header .eyebrow .today-pill{background:var(--on-photo-gold); color:#161616; font-size:9px; padding:2px 8px; border-radius:20px; letter-spacing:0.5px; font-weight:800;}
+  .day-header h2{font-family:'Bungee',sans-serif; font-size:28px; letter-spacing:0.3px; margin-top:6px; color:var(--on-photo-heading); text-shadow:2px 2px 0 rgba(0,0,0,0.5);}
   .day-header .tagline{
     font-family:'Teko',sans-serif; font-weight:700; font-size:18px; letter-spacing:0.8px; margin-top:2px;
     -webkit-text-stroke:0.5px rgba(0,0,0,0.4); text-transform:uppercase;
@@ -141,7 +151,7 @@
   .day-header.push .tagline{color:var(--push); text-shadow:1.5px 1.5px 0 rgba(0,0,0,0.35);}
   .day-header.pull .tagline{color:var(--pull); text-shadow:1.5px 1.5px 0 rgba(0,0,0,0.35);}
   .day-header.legs .tagline{color:var(--legs); text-shadow:1.5px 1.5px 0 rgba(0,0,0,0.35);}
-  .day-header .meta{display:flex; gap:14px; margin-top:9px; font-size:12.5px; color:var(--muted); font-family:'JetBrains Mono',monospace; font-weight:500;}
+  .day-header .meta{display:flex; gap:14px; margin-top:9px; font-size:12.5px; color:var(--on-photo-muted); font-family:'JetBrains Mono',monospace; font-weight:500;}
   .day-header .progress-bar{height:6px; border-radius:4px; background:rgba(255,255,255,0.08); margin-top:14px; overflow:hidden;}
   .day-header .progress-fill{height:100%; border-radius:4px; transition:width .3s ease;}
   .day-header.push .progress-fill{background:linear-gradient(90deg, var(--push), #FF8A5C); box-shadow:0 0 10px var(--push);}
@@ -358,12 +368,12 @@
   /* --- Sign-in landing intro (tagline + feature grid) --- */
   .landing-intro{margin-top:34px; margin-bottom:22px; text-align:center;}
   .landing-title{
-    font-family:'Bungee',sans-serif; color:var(--gold); letter-spacing:1px;
+    font-family:'Bungee',sans-serif; color:var(--on-photo-gold); letter-spacing:1px;
     font-size:clamp(30px, 9vw, 42px); line-height:1; white-space:nowrap;
     text-shadow:3px 3px 0 rgba(0,0,0,0.55), -1px -1px 0 rgba(255,255,255,0.06), 0 0 30px rgba(242,183,5,0.45);
   }
   .landing-tagline{
-    font-family:'Bungee',sans-serif; font-size:15px; color:var(--gold); margin-top:16px; letter-spacing:0.5px; line-height:1.4;
+    font-family:'Bungee',sans-serif; font-size:15px; color:var(--on-photo-gold); margin-top:16px; letter-spacing:0.5px; line-height:1.4;
     -webkit-text-stroke:0.5px rgba(0,0,0,0.4); text-shadow:2.5px 2.5px 0 rgba(0,0,0,0.45);
   }
   .landing-hero-photo{ position:relative; border-radius:18px; overflow:hidden; min-height:200px; margin-bottom:4px; }
@@ -463,10 +473,10 @@
     transition:border-color .15s ease, transform .15s ease;
   }
   .icon-btn:active{transform:scale(0.9);}
-  .icon-btn svg{width:16px; height:16px; stroke:var(--gold);}
+  .icon-btn svg{width:16px; height:16px; stroke:var(--on-photo-gold);}
   .hero-main{display:flex; align-items:center; justify-content:space-between; gap:14px; position:relative; z-index:1;}
   .hero-logo{
-    font-family:'Bungee',sans-serif; font-size:29px; letter-spacing:0.5px; line-height:0.92; color:var(--gold);
+    font-family:'Bungee',sans-serif; font-size:29px; letter-spacing:0.5px; line-height:0.92; color:var(--on-photo-gold);
     text-shadow:3px 3px 0 rgba(0,0,0,0.55), 0 0 26px rgba(242,183,5,0.4);
   }
   .hero-badge{
@@ -478,8 +488,8 @@
   .hero-badge .dot{width:6px; height:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 6px var(--gold); flex-shrink:0;}
   .hero-ring-wrap{position:relative; width:82px; height:82px; flex-shrink:0;}
   .hero-ring-label{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
-  .hero-pct{font-family:'Bungee',sans-serif; font-size:18px; color:var(--ink); line-height:1;}
-  .hero-pct-sub{font-family:'JetBrains Mono',monospace; font-size:7px; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted); margin-top:3px;}
+  .hero-pct{font-family:'Bungee',sans-serif; font-size:18px; color:var(--on-photo-heading); line-height:1;}
+  .hero-pct-sub{font-family:'JetBrains Mono',monospace; font-size:7px; letter-spacing:0.5px; text-transform:uppercase; color:var(--on-photo-muted); margin-top:3px;}
 </style>
 </head>
 <body>
@@ -544,7 +554,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
-function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function isValidEmail(e){ return /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(e); }
 
 /* ============================== SHOW/HIDE PASSWORD ============================== */
 const EYE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
@@ -577,6 +587,14 @@ function showError(message){
   banner.classList.add('show');
 }
 function hideError(){ document.getElementById('errorBanner').classList.remove('show'); }
+
+// Escapes text for safe insertion as HTML CONTENT (inside a tag, not an
+// attribute) -- distinct from escapeAttr, which only handles the narrower
+// attribute-value case. Anything a user can type freely (exercise names,
+// rep text, email) must go through this before landing in innerHTML.
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 document.getElementById('errorDismiss').onclick = hideError;
 
 /* ============================== EXERCISE LIBRARY ============================== */
@@ -742,7 +760,7 @@ const SET_COUNTS = {
 };
 const GOAL_TO_REPCAT = {strength:'strength', muscle_gain:'hypertrophy', recomp:'hypertrophy', fat_loss:'endurance', general:'endurance'};
 
-function equipmentAllowed(e, tier){ const a = EQUIP_ALLOWED[tier]||[]; return e.equipment.some(eq=>a.includes(eq)); }
+function equipmentAllowed(e, tier){ const a = EQUIP_ALLOWED[tier]||[]; return e.equipment.every(eq=>a.includes(eq)); }
 function jointOk(e, avoid){ if(!avoid || !avoid.length) return true; return !e.joints.some(j=>avoid.includes(j)); }
 
 function buildPool(profile){
@@ -753,7 +771,11 @@ function pickExercise(pool, usedIds, muscle, need){
   let cands = pool.filter(e=> e.muscle===muscle && !usedIds.has(e.id) && e.compound===(need==='compound'));
   if(cands.length===0) cands = pool.filter(e=> e.muscle===muscle && !usedIds.has(e.id));
   if(cands.length===0) return null;
-  return cands[0];
+  // Pick randomly among equally-good candidates rather than always the first
+  // in the array -- otherwise every user with the same answers (and every
+  // retake with unchanged answers) gets an identical plan, exercise for
+  // exercise, forever.
+  return cands[Math.floor(Math.random()*cands.length)];
 }
 
 function materialize(e, profile){
@@ -841,10 +863,22 @@ function computeMacros(profile){
   const maintenance = profile.currentWeight * (ACTIVITY_MULT[profile.activity]||14.5);
   const targetCals = Math.round(maintenance * (GOAL_ADJ[profile.goal]||1));
   const proteinG = Math.round(profile.currentWeight * 1);
-  const fatG = Math.round(profile.currentWeight * 0.35);
-  const proteinCals = proteinG*4, fatCals = fatG*9;
-  const carbCalsFloor = profile.currentWeight * 4;
-  const carbCals = Math.max(targetCals - proteinCals - fatCals, carbCalsFloor);
+  const proteinCals = proteinG*4;
+  // Carbs have a floor (roughly bodyweight-in-grams) so intake doesn't get
+  // uncomfortably low. Previously fat was fixed at 0.35g/lb regardless, so
+  // hitting the carb floor could silently push TOTAL calories above the
+  // goal's intended target with no visibility -- for sedentary/light-activity
+  // fat-loss users this happened basically every time, quietly shrinking
+  // their deficit. Now fat flexes down toward a lower (still reasonable)
+  // floor first, so the carb floor is absorbed without blowing past the
+  // calorie target whenever there's room to do so.
+  const carbFloorG = profile.currentWeight;
+  const carbFloorCals = carbFloorG * 4;
+  const minFatG = profile.currentWeight * 0.2;
+  const minFatCals = minFatG * 9;
+  const fatCals = Math.max(minFatCals, targetCals - proteinCals - carbFloorCals);
+  const fatG = Math.round(fatCals/9);
+  const carbCals = Math.max(carbFloorCals, targetCals - proteinCals - fatCals);
   const carbG = Math.round(carbCals/4);
   return {calories: Math.round(proteinCals+fatCals+carbCals), protein:proteinG, carbs:carbG, fat:fatG};
 }
@@ -911,26 +945,34 @@ const DAY_LABELS_GENERIC = null; // day tabs no longer map to weekdays — plans
 function root(){ return document.getElementById('appRoot'); }
 
 /* ============================== AUTH ============================== */
+let authActionInFlight = false; // guards Sign In / Create Account against a fast double-click firing two requests
+
 async function handleSignUp(email, password, confirmPw){
+  if(authActionInFlight) return;
   hideError();
   if(!isValidEmail(email)){ showError('Enter a valid email address.'); return; }
   if(password.length < 6){ showError('Password must be at least 6 characters.'); return; }
   if(password !== confirmPw){ showError("Passwords don't match."); return; }
+  authActionInFlight = true;
   const {data, error} = await sb.auth.signUp({
     email, password,
     options: { emailRedirectTo: window.location.origin + window.location.pathname }
   });
+  authActionInFlight = false;
   if(error){ showError(error.message); return; }
-  if(data.session){ currentUser = data.session.user; await loadProfileAndData(); return; }
+  if(data.session){ sessionHandledOnce = true; currentUser = data.session.user; await loadProfileAndData(); return; }
   pendingEmail = email;
   APP_STATE = 'check-email';
   render();
 }
 
 async function handleSignIn(email, password){
+  if(authActionInFlight) return;
   hideError();
   if(!isValidEmail(email)){ showError('Enter a valid email address.'); return; }
+  authActionInFlight = true;
   const {data, error} = await sb.auth.signInWithPassword({email, password});
+  authActionInFlight = false;
   if(error){
     if(error.message === 'Email not confirmed'){
       pendingEmail = email;
@@ -941,6 +983,7 @@ async function handleSignIn(email, password){
     showError(error.message);
     return;
   }
+  sessionHandledOnce = true;
   currentUser = data.user;
   await loadProfileAndData();
 }
@@ -980,7 +1023,7 @@ async function handleSignOut(){
 }
 
 /* ============================== DATA LOAD / SAVE ============================== */
-async function loadProfileAndData(){
+async function loadProfileAndData(isRetry){
   APP_STATE = 'loading'; render();
   try{
     const {data: profRow, error: profErr} = await sb.from('user_profiles').select('*').eq('id', currentUser.id).maybeSingle();
@@ -1007,6 +1050,15 @@ async function loadProfileAndData(){
     APP_STATE = 'dashboard';
     render();
   }catch(e){
+    // A momentary blip here previously dumped an already-signed-in person
+    // straight to a sign-in FORM, which is a strange place to land right
+    // after successfully authenticating. One quiet automatic retry gives a
+    // transient hiccup a chance to clear up on its own before bothering
+    // the person at all.
+    if(!isRetry){
+      await sleep(1200);
+      return loadProfileAndData(true);
+    }
     showError('Could not load your data: ' + e.message);
     APP_STATE = 'signin';
     render();
@@ -1064,6 +1116,12 @@ async function saveAll(){
     return true;
   }catch(e){
     saveStatus='error'; renderSaveStatus();
+    // A failed save used to be visible only as a few small words of status
+    // text elsewhere on the screen -- easy to miss entirely, especially since
+    // the UI shows your change as already "done" the moment you click. Every
+    // save failure now also raises the same prominent banner used for every
+    // other error in the app, regardless of which action triggered it.
+    showError("Couldn't save your last change — check your connection and try again.");
     return false;
   }
 }
@@ -1075,8 +1133,22 @@ async function saveAll(){
 // which is a separate, optional server-side step (see setup notes).
 async function confirmDeleteData(){
   try{
-    await sb.from('user_data').delete().eq('id', currentUser.id);
-    await sb.from('user_profiles').delete().eq('id', currentUser.id);
+    // Supabase's delete calls report failure via a returned {error}, not
+    // necessarily by throwing -- checking only for a thrown exception (as
+    // this used to do) let a rejected/failed delete look identical to a
+    // successful one, with nothing shown to the user and no way to know
+    // your data wasn't actually removed. Both steps are checked explicitly
+    // now, and the second delete is not attempted if the first failed, so a
+    // partial failure can't happen silently.
+    // Deleting the profile FIRST (not the workout data) means that if the
+    // second call fails, the account is left looking brand-new (no profile
+    // = treated as a new signup next time) rather than looking fully
+    // onboarded with its history quietly missing, which is a much more
+    // confusing state to land in by accident.
+    const {error: profErr} = await sb.from('user_profiles').delete().eq('id', currentUser.id);
+    if(profErr) throw profErr;
+    const {error: dataErr} = await sb.from('user_data').delete().eq('id', currentUser.id);
+    if(dataErr) throw dataErr;
     await sb.auth.signOut();
     currentUser = null; profile = null; plan = null;
     trackerState = {}; trackerHistory = []; weightLog = [];
@@ -1205,7 +1277,6 @@ async function finalizeOnboarding(){
 }
 
 function startRetake(){
-  if(!confirm("Retaking the questionnaire will generate a new plan and clear this week's checkmarks. Your weight log stays intact. Continue?")) return;
   qAnswers = {
     goal:profile.goal, experience:profile.experience, days:profile.days_per_week, equipment:profile.equipment,
     activity:profile.activity, diet:profile.diet, currentWeight:profile.current_weight, goalWeight:profile.goal_weight,
@@ -1261,8 +1332,12 @@ function dayProgress(dayNum){
   return {done, total, pct: total?done/total:0};
 }
 function getUpNextDay(){
-  for(const d of plan.days){ if(dayProgress(d.day).pct < 1) return d.day; }
-  return plan.days[0].day;
+  for(const d of plan.days){ if(d.exercises.length>0 && dayProgress(d.day).pct < 1) return d.day; }
+  // Everything real is either complete or there's nothing left incomplete --
+  // still prefer a day that actually HAS exercises over blindly defaulting
+  // to day one, in case day one itself is the empty one.
+  const firstNonEmpty = plan.days.find(d=>d.exercises.length>0);
+  return firstNonEmpty ? firstNonEmpty.day : plan.days[0].day;
 }
 function getWeekId(d){
   const day = d.getDay();
@@ -1305,17 +1380,27 @@ async function logWeight(rawValue){
   const val = parseFloat(rawValue);
   if(isNaN(val) || val<70 || val>500){ showError('Enter a valid weight in lbs, e.g. 178'); return; }
   const today = todayISO();
+  const previousWeightLog = JSON.parse(JSON.stringify(weightLog)); // for rollback if the save fails
   const idx = weightLog.findIndex(e=>e.date===today);
   if(idx>=0) weightLog[idx].weight = val; else weightLog.push({date:today, weight:val});
   weightLog.sort((a,b)=>a.date.localeCompare(b.date));
   hideError();
-  await saveAll();
+  renderDashboard();
+  const ok = await saveAll();
+  if(!ok){
+    // The screen already showed the new weight as logged -- if it didn't
+    // actually save, put the real (unsaved) state back so what's on screen
+    // always matches what's actually persisted.
+    weightLog = previousWeightLog;
+  }
   renderDashboard();
 }
 
 let toggleSaveTimer = null;
+let toggleSaveSnapshot = null; // trackerState right before the current pending batch, for rollback if the save fails
 function toggleSet(day, exId, idx, total){
   const key = trackerKey(day, exId);
+  if(toggleSaveSnapshot === null) toggleSaveSnapshot = JSON.parse(JSON.stringify(trackerState));
   const wasDayComplete = dayProgress(day).pct === 1;
   const wasWeekComplete = plan.days.every(d => dayProgress(d.day).pct === 1);
   if(!trackerState[key]) trackerState[key] = {};
@@ -1332,7 +1417,18 @@ function toggleSet(day, exId, idx, total){
     showMangaBurst(DAY_COMPLETE_PHRASES[Math.floor(Math.random()*DAY_COMPLETE_PHRASES.length)]);
   }
   clearTimeout(toggleSaveTimer);
-  toggleSaveTimer = setTimeout(()=>{ saveAll(); }, 350);
+  toggleSaveTimer = setTimeout(async ()=>{
+    const snapshot = toggleSaveSnapshot;
+    toggleSaveSnapshot = null;
+    const ok = await saveAll();
+    if(!ok){
+      // None of the toggles in this batch actually made it to the database --
+      // put the screen back to what's really saved instead of leaving it
+      // showing checkmarks that don't exist anywhere but this browser tab.
+      trackerState = snapshot;
+      renderDashboard();
+    }
+  }, 350);
 }
 
 /* ============================== MANUAL EXERCISE ADD / EDIT / DELETE ============================== */
@@ -1416,37 +1512,68 @@ function readExerciseForm(prefix){
   };
 }
 
-function handleSaveAddEx(){
+let exCrudInFlight = false; // guards against a fast double-click firing the same add/edit/delete twice
+
+async function handleSaveAddEx(){
+  if(exCrudInFlight) return;
   const v = readExerciseForm('newEx');
   if(!v) return;
+  exCrudInFlight = true;
   const newEx = {id:'custom_'+Date.now(), name:v.name, tag:v.tag, sets:v.sets, reps:v.reps, weight:v.weight, unit:v.unit, muscles:v.muscles};
   const dayObj = plan.days.find(x=>x.day===activeDay);
   dayObj.exercises.push(newEx);
   addFormOpen = false;
-  saveAll();
+  renderDashboard();
+  const ok = await saveAll();
+  if(!ok){
+    // Wasn't actually saved -- don't leave it looking like it was.
+    dayObj.exercises = dayObj.exercises.filter(e=>e.id!==newEx.id);
+  }
+  exCrudInFlight = false;
   renderDashboard();
 }
 
-function handleSaveEditEx(exId){
+async function handleSaveEditEx(exId){
+  if(exCrudInFlight) return;
   const v = readExerciseForm('editEx');
   if(!v) return;
   const dayObj = plan.days.find(x=>x.day===activeDay);
   const ex = dayObj.exercises.find(e=>e.id===exId);
   if(!ex) return;
+  exCrudInFlight = true;
+  const previous = {...ex};
+  const previousCheckmarks = trackerState[trackerKey(activeDay, ex.id)];
   ex.name = v.name; ex.tag = v.tag; ex.sets = v.sets; ex.reps = v.reps;
   ex.weight = v.weight; ex.unit = v.unit; ex.muscles = v.muscles;
   delete trackerState[trackerKey(activeDay, ex.id)]; // sets count may have changed — drop any stale checkmarks
   editingExId = null;
-  saveAll();
+  renderDashboard();
+  const ok = await saveAll();
+  if(!ok){
+    Object.assign(ex, previous);
+    if(previousCheckmarks) trackerState[trackerKey(activeDay, ex.id)] = previousCheckmarks;
+  }
+  exCrudInFlight = false;
   renderDashboard();
 }
 
-function handleDeleteEx(exId){
+async function handleDeleteEx(exId){
+  if(exCrudInFlight) return;
+  exCrudInFlight = true;
   const dayObj = plan.days.find(x=>x.day===activeDay);
+  const removedIndex = dayObj.exercises.findIndex(e=>e.id===exId);
+  const removedEx = dayObj.exercises[removedIndex];
+  const removedCheckmarks = trackerState[trackerKey(activeDay, exId)];
   dayObj.exercises = dayObj.exercises.filter(e=>e.id!==exId);
   delete trackerState[trackerKey(activeDay, exId)];
   deleteConfirmExId = null;
-  saveAll();
+  renderDashboard();
+  const ok = await saveAll();
+  if(!ok && removedEx){
+    dayObj.exercises.splice(removedIndex, 0, removedEx);
+    if(removedCheckmarks) trackerState[trackerKey(activeDay, exId)] = removedCheckmarks;
+  }
+  exCrudInFlight = false;
   renderDashboard();
 }
 
@@ -1457,8 +1584,14 @@ function renderDashboard(){
   const meals = MEALS[profile.diet] || MEALS.none;
   const startWeight = profile.current_weight, goalWeight = profile.goal_weight;
   const cw = currentWeight();
-  const lbsLost = Math.max(0, startWeight - cw);
-  const lbsToGo = Math.max(0, cw - goalWeight);
+  const isGainGoal = goalWeight > startWeight;
+  // Both labels now read correctly regardless of which direction the goal
+  // runs -- previously they assumed weight LOSS unconditionally, so a
+  // muscle-gain user who'd actually gained weight still saw "0.0" for both,
+  // even while the progress bar (which was already direction-aware) showed
+  // real movement.
+  const lbsLost = isGainGoal ? Math.max(0, cw - startWeight) : Math.max(0, startWeight - cw);
+  const lbsToGo = isGainGoal ? Math.max(0, goalWeight - cw) : Math.max(0, cw - goalWeight);
   const denom = (startWeight - goalWeight) || 1;
   const pct = Math.min(1, Math.max(0, (startWeight-cw)/denom));
   const createdAt = new Date(profile.created_at);
@@ -1634,9 +1767,9 @@ function renderDashboard(){
     <div class="day-header ${d.split}">
       <div class="day-header-bg"></div>
       <span class="eyebrow">Day ${d.day} of ${N}${isUpNext ? `<span class="today-pill">Up Next</span>`:''}</span>
-      <h2>${d.title}</h2>
-      <div class="tagline">${d.tagline}</div>
-      <div class="meta"><span>${d.subtitle}</span></div>
+      <h2>${escapeHtml(d.title)}</h2>
+      <div class="tagline">${escapeHtml(d.tagline)}</div>
+      <div class="meta"><span>${escapeHtml(d.subtitle)}</span></div>
       <div class="meta"><span>${done}/${total} exercises logged</span></div>
       <div class="progress-bar"><div class="progress-fill" style="width:${dayPct*100}%"></div></div>
     </div>`;
@@ -1654,14 +1787,14 @@ function renderDashboard(){
       <div class="ex-main">
         <div class="ex-top">
           <div>
-            <span class="ex-tag">${ex.tag} · ${ex.sets} ${ex.sets===1?'set':'sets'} × ${ex.reps}</span>
-            <div class="ex-name ${isDone?'done-text':''}">${ex.name}</div>
+            <span class="ex-tag">${escapeHtml(ex.tag)} · ${ex.sets} ${ex.sets===1?'set':'sets'} × ${escapeHtml(ex.reps)}</span>
+            <div class="ex-name ${isDone?'done-text':''}">${escapeHtml(ex.name)}</div>
           </div>
           <div class="status-badge ${isDone?'checked':''}">
             <svg viewBox="0 0 24 24" fill="none" stroke="#0A0A0C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </div>
         </div>
-        <div class="ex-muscles"><b>Targets:</b> ${ex.muscles}</div>
+        <div class="ex-muscles"><b>Targets:</b> ${escapeHtml(ex.muscles)}</div>
         <div class="ex-inputs">
           <div class="field"><label>Suggested weight</label><div class="weight-label">${ex.weight}<span class="unit">${ex.unit}</span></div></div>
           <div class="field">
@@ -1832,7 +1965,7 @@ function renderCheckEmail(){
     <div class="info-card">
       <div class="eyebrow">Almost there</div>
       <h2>Check Your Email</h2>
-      <p>We sent a confirmation link to <b style="color:var(--ink)">${pendingEmail}</b>. Click it to activate your account — you'll be signed in automatically and taken straight to your plan.</p>
+      <p>We sent a confirmation link to <b style="color:var(--ink)">${escapeHtml(pendingEmail)}</b>. Click it to activate your account — you'll be signed in automatically and taken straight to your plan.</p>
       <button class="auth-submit" id="backToSignIn">Back to Sign In</button>
       <div class="auth-switch">Didn't get it? <a id="resendConfirm">Resend confirmation email</a></div>
     </div>`;
@@ -1866,7 +1999,7 @@ function renderResetEmailSent(){
     <div class="info-card">
       <div class="eyebrow">Almost there</div>
       <h2>Reset Link Sent</h2>
-      <p>We sent a password reset link to <b style="color:var(--ink)">${pendingEmail}</b>. Click it to choose a new password, then you'll be signed in automatically.</p>
+      <p>We sent a password reset link to <b style="color:var(--ink)">${escapeHtml(pendingEmail)}</b>. Click it to choose a new password, then you'll be signed in automatically.</p>
       <button class="auth-submit" id="backToSignInFromReset">Back to Sign In</button>
     </div>`;
   document.getElementById('backToSignInFromReset').onclick = ()=>{ hideError(); APP_STATE='signin'; render(); };
@@ -1905,7 +2038,7 @@ function renderAccount(){
     <div class="title-block" style="margin-bottom:16px;"><h1>ACCOUNT</h1><p>Your details & history</p></div>
 
     <div class="account-card">
-      <div class="account-row"><span>Email</span><b>${currentUser.email}</b></div>
+      <div class="account-row"><span>Email</span><b>${escapeHtml(currentUser.email)}</b></div>
       <div class="account-row"><span>Member Since</span><b>${memberSince}</b></div>
       <div class="account-row"><span>Goal</span><b>${GOAL_LABEL[profile.goal]}</b></div>
       <div class="account-row"><span>Experience</span><b>${EXPERIENCE_LABEL[profile.experience]||profile.experience}</b></div>
@@ -1936,13 +2069,25 @@ function renderAccount(){
       <button class="btn-danger" id="deleteDataBtn">Delete My Data</button>
     </div>
     <div id="changePasswordArea"></div>
+    <div id="retakeConfirmArea"></div>
     <div id="deleteConfirmArea"></div>
   `;
 
   document.getElementById('backToDash').onclick = ()=>{ APP_STATE='dashboard'; render(); };
   document.getElementById('themeToggleBtn').onclick = toggleTheme;
   document.getElementById('signOutLink').onclick = handleSignOut;
-  document.getElementById('editPlanBtn').onclick = startRetake;
+  document.getElementById('editPlanBtn').onclick = ()=>{
+    document.getElementById('retakeConfirmArea').innerHTML = `
+      <div class="confirm-box">
+        Retaking the questionnaire will generate a new plan and clear this week's checkmarks. Your weight log stays intact.
+        <div class="row">
+          <button id="cancelRetake">Cancel</button>
+          <button class="danger" id="reallyRetake">Yes, Retake It</button>
+        </div>
+      </div>`;
+    document.getElementById('cancelRetake').onclick = ()=>{ document.getElementById('retakeConfirmArea').innerHTML=''; };
+    document.getElementById('reallyRetake').onclick = startRetake;
+  };
   document.getElementById('changePasswordBtn').onclick = ()=>{
     document.getElementById('changePasswordArea').innerHTML = `
       <div class="add-ex-row">
@@ -2017,28 +2162,54 @@ function setupSwipeGestures(){
   }, {passive:true});
 }
 
+// Wraps a promise so it can never hang forever -- if it hasn't settled within
+// `ms`, we stop waiting and proceed as if it returned `timeoutValue`, rather
+// than leaving the whole app stuck (e.g. a dead connection previously left
+// the page frozen on the initial "Loading…" screen with no way out).
+function withTimeout(promise, ms, timeoutValue){
+  return Promise.race([
+    promise,
+    new Promise(resolve => setTimeout(()=>resolve(timeoutValue), ms)),
+  ]);
+}
+
+let sessionHandledOnce = false; // prevents init()'s own check and the auth listener's first event from both loading data for the same session
 async function init(){
-  const {data:{session}} = await sb.auth.getSession();
+  let session = null, timedOut = false;
+  try{
+    const result = await withTimeout(sb.auth.getSession(), 9000, {__timedOut:true});
+    if(result.__timedOut) timedOut = true;
+    else session = result.data.session;
+  }catch(e){
+    timedOut = true; // treat a thrown error here the same as a timeout -- either way, stop waiting and let the person try to sign in
+  }
+
   if(arrivedViaPasswordRecovery){
     currentUser = session ? session.user : null;
     APP_STATE = 'reset-password';
     render();
   } else if(session){
+    sessionHandledOnce = true;
     currentUser = session.user;
     await loadProfileAndData();
     maybeShowConfirmToast();
+  } else {
+    APP_STATE = 'signin';
+    render();
+    if(timedOut) showError("Couldn't connect — check your internet connection and try signing in.");
   }
-  else { APP_STATE = 'signin'; render(); }
 
   sb.auth.onAuthStateChange((event, session)=>{
     if(event === 'PASSWORD_RECOVERY'){
       currentUser = session.user;
       APP_STATE = 'reset-password';
       render();
-    } else if(event==='SIGNED_IN' && session && (!currentUser || currentUser.id!==session.user.id)){
+    } else if(event==='SIGNED_IN' && session && !sessionHandledOnce){
+      sessionHandledOnce = true;
       currentUser = session.user;
       loadProfileAndData().then(maybeShowConfirmToast);
     } else if(event==='SIGNED_OUT'){
+      sessionHandledOnce = false;
       currentUser = null; profile = null; plan = null;
       APP_STATE = 'signin'; render();
     }
