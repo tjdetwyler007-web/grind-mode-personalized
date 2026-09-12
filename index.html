@@ -84,11 +84,17 @@
   .stats-strip svg{flex-shrink:0; width:18px; height:18px; stroke:var(--gold); margin-top:1px;}
   .stats-strip b{color:var(--gold); font-weight:700;}
 
+  .title-block{position:relative;}
   .title-block h1{
     font-family:'Bungee', sans-serif; font-size:26px; letter-spacing:0.5px; line-height:1.05;
     color:var(--gold); text-shadow: 2px 2px 0 rgba(0,0,0,0.6), 0 0 22px rgba(242,183,5,0.35);
   }
   .title-block p{color:var(--muted); font-size:11px; margin-top:6px; letter-spacing:1.2px; font-weight:700; text-transform:uppercase;}
+  .q-exit-btn{
+    position:absolute; top:0; right:0; width:32px; height:32px; border-radius:50%;
+    border:1.5px solid var(--line); background:var(--card); color:var(--muted);
+    font-size:14px; cursor:pointer; line-height:1;
+  }
 
   .day-tabs{display:grid; gap:7px; margin-bottom:18px;}
   .day-tab{
@@ -651,6 +657,23 @@ function showError(message){
   banner.classList.add('show');
 }
 function hideError(){ document.getElementById('errorBanner').classList.remove('show'); }
+
+// supabase-js's functions.invoke() gives a generic "non-2xx status code"
+// message by default and doesn't automatically surface the actual JSON body
+// an Edge Function returned -- meaning a 404 (not deployed), a 503 (missing
+// API key), and a real bug all look identical from the client's point of
+// view unless this is unwrapped explicitly. This digs out whatever specific
+// message the function actually tried to send back, falling back to the
+// generic one only if that's genuinely all there is.
+async function describeFunctionError(error){
+  try{
+    if(error && error.context && typeof error.context.json === 'function'){
+      const body = await error.context.json();
+      if(body && body.error) return body.error;
+    }
+  }catch(_e){ /* fall through */ }
+  return (error && error.message) || 'Unknown error';
+}
 
 // Escapes text for safe insertion as HTML CONTENT (inside a tag, not an
 // attribute) -- distinct from escapeAttr, which only handles the narrower
@@ -1293,7 +1316,7 @@ async function confirmDeleteData(){
 async function confirmPermanentDelete(){
   try{
     const {data, error} = await sb.functions.invoke('delete-account', {});
-    if(error) throw error;
+    if(error) throw new Error(await describeFunctionError(error));
     if(!data || !data.success) throw new Error((data && data.error) || 'Unknown error from delete-account function');
     await sb.auth.signOut();
     currentUser = null; profile = null; plan = null;
@@ -1320,7 +1343,7 @@ async function getCoachingNote(exId){
     const {data, error} = await sb.functions.invoke('ai-coach', {
       body: { exerciseName: ex.name, currentWeight: ex.weight, unit: ex.unit, recentWeeks: exerciseHistory[exId] || [] }
     });
-    if(error) throw error;
+    if(error) throw new Error(await describeFunctionError(error));
     if(!data || !data.note) throw new Error((data && data.error) || 'No note returned');
     coachingNoteText = data.note;
   }catch(e){
@@ -1344,6 +1367,25 @@ function qCanAdvance(){
   return true;
 }
 
+// Lets someone back out of onboarding regardless of how they got there (the
+// tap-through form or the chat) or who they are. The two destinations are
+// genuinely different, not just cosmetically: an existing user retaking
+// their plan has a real dashboard to return to, with nothing lost since
+// nothing mid-flow was ever saved; a brand-new user has no dashboard yet at
+// all, so signing out is the only sensible exit -- and it's not
+// destructive, their account still exists and they'll land right back on
+// this same questionnaire next time they sign in.
+function exitOnboarding(){
+  if(profile && profile.onboarded){
+    qIndex = 0; qAnswers = {};
+    chatMessages = []; chatExtracted = null; chatReadyToBuild = false;
+    APP_STATE = 'dashboard';
+    render();
+  } else {
+    handleSignOut();
+  }
+}
+
 function renderQuestionnaire(){
   const q = QUESTIONS[qIndex];
   const segs = QUESTIONS.map((_,i)=>`<div class="seg ${i<=qIndex?'done':''}"></div>`).join('');
@@ -1365,7 +1407,10 @@ function renderQuestionnaire(){
   }
 
   root().innerHTML = `
-    <div class="title-block" style="margin-top:24px;"><h1>GRIND<br>MODE</h1><p>Let's build your plan</p></div>
+    <div class="title-block" style="margin-top:24px;">
+      <button class="q-exit-btn" id="qExitBtn" title="${profile && profile.onboarded ? 'Back to dashboard' : 'Sign out'}">✕</button>
+      <h1>GRIND<br>MODE</h1><p>Let's build your plan</p>
+    </div>
     <div class="step-progress">${segs}</div>
     <div class="q-card">
       <div class="q-eyebrow">Step ${qIndex+1} of ${QUESTIONS.length}</div>
@@ -1382,6 +1427,7 @@ function renderQuestionnaire(){
   if(qIndex===0){
     document.getElementById('openChatIntake').onclick = startChatIntake;
   }
+  document.getElementById('qExitBtn').onclick = exitOnboarding;
 
   if(q.type==='single'){
     root().querySelectorAll('.q-option').forEach(el=>{
@@ -1433,7 +1479,10 @@ function renderChatIntake(){
     <div class="chat-wrap">
       <div class="chat-header">
         <h2>GRIND MODE</h2>
-        <button id="chatBackToForm">Use the form instead</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button id="chatBackToForm">Use the form instead</button>
+          <button class="q-exit-btn" id="chatExitBtn" title="${profile && profile.onboarded ? 'Back to dashboard' : 'Sign out'}" style="position:static;">✕</button>
+        </div>
       </div>
       <div class="chat-log" id="chatLog">
         ${chatMessages.length===0 ? `<div class="chat-bubble assistant">Hey! I'll build your plan through conversation instead of a form — tell me a bit about your fitness goals, and don't worry about covering everything at once, I'll ask follow-ups.</div>` : ''}
@@ -1464,6 +1513,7 @@ function renderChatIntake(){
   if(log) log.scrollTop = log.scrollHeight;
 
   document.getElementById('chatBackToForm').onclick = ()=>{ qIndex=0; qAnswers={}; APP_STATE='questionnaire'; render(); };
+  document.getElementById('chatExitBtn').onclick = exitOnboarding;
   if(chatReadyToBuild){
     document.getElementById('buildFromChat').onclick = buildPlanFromChat;
   } else {
@@ -1481,7 +1531,7 @@ async function sendChatMessage(text){
   renderChatIntake();
   try{
     const {data, error} = await sb.functions.invoke('plan-chat', { body: { messages: chatMessages } });
-    if(error) throw error;
+    if(error) throw new Error(await describeFunctionError(error));
     if(!data || !data.reply) throw new Error((data && data.error) || 'No reply from the assistant');
     chatMessages.push({role:'assistant', content:data.reply});
     chatExtracted = data.extracted || chatExtracted;
@@ -1551,9 +1601,15 @@ async function finalizeOnboarding(){
 
 function startRetake(){
   qAnswers = {
-    goals:profile.goals||[], experience:profile.experience, days:profile.days_per_week, equipment:profile.equipment,
+    // Spreading into new arrays here matters: without it, qAnswers.goals and
+    // profile.goals would be the SAME array object, so every tap while
+    // retaking (even before "Build My Plan") would mutate the real, already-
+    // saved profile in place -- meaning abandoning a retake via the exit
+    // button wouldn't actually abandon anything, changes already made would
+    // silently stick despite never being saved.
+    goals:[...(profile.goals||[])], experience:profile.experience, days:profile.days_per_week, equipment:profile.equipment,
     activity:profile.activity, diet:profile.diet, currentWeight:profile.current_weight, goalWeight:profile.goal_weight,
-    timeframeWeeks:profile.timeframe_weeks, avoid:profile.avoid||[], sex:profile.sex||'unspecified',
+    timeframeWeeks:profile.timeframe_weeks, avoid:[...(profile.avoid||[])], sex:profile.sex||'unspecified',
   };
   qIndex = 0;
   APP_STATE = 'questionnaire';
