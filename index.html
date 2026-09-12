@@ -293,6 +293,28 @@
   .save-status.ok{color:var(--good);}
   .save-status.err{color:var(--bad);}
 
+  /* Persistent top bar -- shared by both dashboard pages, so account/theme/
+     sign-out and save status stay reachable regardless of which page you're
+     on (a save can happen from either page, so its status shouldn't only be
+     visible on one of them). */
+  .app-topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .app-topbar .hero-nav-group{display:flex; gap:8px;}
+  .save-pill{display:flex; align-items:center; gap:5px; border-radius:20px; padding:4px 10px 4px 8px; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.3px; border:1px solid var(--line); background:var(--card); color:var(--muted); transition:border-color 0.2s, color 0.2s;}
+  .save-pill .save-dot{width:6px; height:6px; border-radius:50%; background:var(--muted); flex-shrink:0;}
+  .save-pill.saving .save-dot{background:var(--gold); animation:save-pulse 1s ease-in-out infinite;}
+  .save-pill.saving{border-color:var(--gold-dim); color:var(--gold);}
+  .save-pill.ok .save-dot{background:var(--good);}
+  .save-pill.ok{border-color:var(--good); color:var(--good); background:rgba(31,174,75,0.1);}
+  .save-pill.err .save-dot{background:var(--bad);}
+  .save-pill.err{border-color:var(--bad); color:var(--bad); background:rgba(214,35,79,0.1);}
+  @keyframes save-pulse{0%,100%{opacity:1;} 50%{opacity:0.3;}}
+
+  /* Bottom tab bar -- switches between the Overview and Workout pages */
+  .bottom-tabs{display:flex; gap:8px; margin:18px 0 6px; background:var(--card); border:1.5px solid var(--line); border-radius:16px; padding:6px;}
+  .bottom-tab{flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:9px 0 7px; border-radius:11px; border:none; background:transparent; font-family:'Teko',sans-serif; font-size:12px; letter-spacing:0.5px; color:var(--muted); cursor:pointer;}
+  .bottom-tab .bt-icon{font-size:17px; line-height:1;}
+  .bottom-tab.active{background:var(--bg-2); color:var(--gold); box-shadow:inset 0 0 0 1.5px var(--gold-dim);}
+
   .loading{text-align:center; color:var(--muted); font-size:13px; padding:60px 0;}
 
   /* --- Auth --- */
@@ -800,7 +822,7 @@ function pickExercise(pool, usedIds, muscle, need){
 }
 
 function materialize(e, profile){
-  const repCat = GOAL_TO_REPCAT[profile.goal] || 'hypertrophy';
+  const repCat = dominantRepCat(profile.goals);
   const reps = REP_RANGES[repCat][e.compound?'compound':'isolation'];
   const sets = SET_COUNTS[repCat][e.compound?'compound':'isolation'];
   let weightDisplay = '—';
@@ -816,7 +838,7 @@ function materialize(e, profile){
 }
 
 function materializeCardio(e, profile){
-  const dur = CARDIO_DURATION[profile.goal] || CARDIO_DURATION.general;
+  const dur = cardioProfileFor(profile.goals).duration;
   if(e.style === 'intervals'){
     return {id:e.id, name:e.name, tag:'Cardio', sets:6, reps:`${dur.intervals} · 30s on/30s off`, weight:'—', unit:'intervals', muscles:e.desc};
   }
@@ -834,9 +856,10 @@ function addCardioToPlan(days, profile, pool){
 
   days.forEach((day, idx)=>{
     let include, useIntervals;
-    if(profile.goal==='fat_loss'){ include = true; useIntervals = (idx%2===1); }
-    else if(profile.goal==='recomp' || profile.goal==='general'){ include = (idx%2===1); useIntervals = false; }
-    else { include = (idx === days.length-1); useIntervals = false; } // muscle_gain / strength: once a week, steady only
+    const cardioMode = cardioProfileFor(profile.goals).mode;
+    if(cardioMode==='daily'){ include = true; useIntervals = (idx%2===1); }
+    else if(cardioMode==='everyOther'){ include = (idx%2===1); useIntervals = false; }
+    else { include = (idx === days.length-1); useIntervals = false; } // muscle_gain / strength only: once a week, steady only
 
     if(!include) return;
     const chosenPool = (useIntervals && intervalPool.length) ? intervalPool : (steadyPool.length ? steadyPool : cardioPool);
@@ -875,6 +898,37 @@ function generatePlan(profile){
 const ACTIVITY_MULT = {sedentary:12.5, light:14, moderate:15.5, very:17};
 const GOAL_ADJ = {fat_loss:0.8, muscle_gain:1.1, recomp:0.9, strength:1.0, general:1.0};
 const GOAL_LABEL = {fat_loss:'Lose Fat', muscle_gain:'Build Muscle', recomp:'Body Recomposition', strength:'Get Stronger', general:'General Fitness'};
+
+// Someone can now pick more than one goal (e.g. "Lose Fat" + "Get Stronger"),
+// which means several places that used to do a simple lookup on a single
+// goal string need a real decision about what multiple, sometimes-competing
+// goals should produce. Rep ranges and cardio dosage use a priority order
+// (some goals have a more specific technical requirement than others);
+// calorie target uses a plain average, since blending a deficit and a
+// surplus into something closer to maintenance is the honest realistic
+// answer for someone pursuing both at once, not a design compromise.
+function dominantRepCat(goals){
+  const cats = (goals||[]).map(g=>GOAL_TO_REPCAT[g]).filter(Boolean);
+  if(cats.includes('strength')) return 'strength';
+  if(cats.includes('hypertrophy')) return 'hypertrophy';
+  if(cats.includes('endurance')) return 'endurance';
+  return 'hypertrophy';
+}
+function blendedGoalAdj(goals){
+  const adjs = (goals||[]).map(g=>GOAL_ADJ[g]).filter(v=>typeof v==='number');
+  if(adjs.length===0) return 1;
+  return adjs.reduce((a,b)=>a+b,0) / adjs.length;
+}
+function cardioProfileFor(goals){
+  const g = goals||[];
+  if(g.includes('fat_loss')) return {mode:'daily', duration:CARDIO_DURATION.fat_loss};
+  if(g.includes('recomp')) return {mode:'everyOther', duration:CARDIO_DURATION.recomp};
+  if(g.includes('general')) return {mode:'everyOther', duration:CARDIO_DURATION.general};
+  return {mode:'weekly', duration:CARDIO_DURATION.general}; // muscle_gain / strength only
+}
+function goalsLabel(goals){
+  return (goals&&goals.length) ? goals.map(g=>GOAL_LABEL[g]||g).join(' + ') : 'General Fitness';
+}
 const EQUIP_LABEL = {full_gym:'Full Gym', home_dumbbells:'Home (Dumbbells)', bodyweight:'Bodyweight Only'};
 const SPLIT_LABEL = {3:'3-Day Full Body', 4:'4-Day Upper/Lower', 5:'5-Day Upper/Lower/Push/Pull/Legs', 6:'6-Day Push/Pull/Legs'};
 const DIET_LABEL = {none:'No Restrictions', vegetarian:'Vegetarian', vegan:'Vegan', dairy_free:'Dairy-Free', gluten_free:'Gluten-Free'};
@@ -883,7 +937,7 @@ const ACTIVITY_LABEL = {sedentary:'Sedentary', light:'Lightly Active', moderate:
 
 function computeMacros(profile){
   const maintenance = profile.currentWeight * (ACTIVITY_MULT[profile.activity]||14.5);
-  const targetCals = Math.round(maintenance * (GOAL_ADJ[profile.goal]||1));
+  const targetCals = Math.round(maintenance * blendedGoalAdj(profile.goals));
   const proteinG = Math.round(profile.currentWeight * 1);
   const proteinCals = proteinG*4;
   // Carbs have a floor (roughly bodyweight-in-grams) so intake doesn't get
@@ -915,7 +969,7 @@ const MEALS = {
 
 /* ============================== QUESTIONNAIRE DEFINITION ============================== */
 const QUESTIONS = [
-  {key:'goal', title:"What's your main goal right now?", type:'single', options:[
+  {key:'goals', title:"What are you working toward? (pick one or more)", type:'multi', minSelect:1, options:[
     {value:'fat_loss', label:'Lose Fat'}, {value:'muscle_gain', label:'Build Muscle'},
     {value:'recomp', label:'Body Recomposition'}, {value:'strength', label:'Get Stronger'},
     {value:'general', label:'General Fitness'} ]},
@@ -962,6 +1016,7 @@ let saveStatus = 'idle', lastSavedAt = null;
 let deleteConfirmOpen = false;
 let addFormOpen = false, editingExId = null, deleteConfirmExId = null;
 let weightDetailsOpen = false, dietDetailsOpen = false, recoveryEditing = false;
+let dashboardPage = 'overview'; // 'overview' (goals/feeling/weight/nutrition) or 'workout' (day tabs/exercises)
 let coachingNoteExId = null, coachingNoteText = null, coachingNoteLoading = false, coachingNoteError = null;
 
 function goToDay(dayNum){
@@ -1106,7 +1161,7 @@ async function loadProfileAndData(isRetry){
 }
 
 function profileToGenInput(p){
-  return {goal:p.goal, experience:p.experience, days:p.days_per_week, equipment:p.equipment, currentWeight:p.current_weight, avoid:p.avoid||[], sex:p.sex||'unspecified'};
+  return {goals:p.goals||[], experience:p.experience, days:p.days_per_week, equipment:p.equipment, currentWeight:p.current_weight, avoid:p.avoid||[], sex:p.sex||'unspecified'};
 }
 
 let writeLock = Promise.resolve();
@@ -1140,12 +1195,13 @@ async function silentSave(){
 }
 
 function renderSaveStatus(){
-  const el = document.getElementById('saveStatus');
-  if(!el) return;
-  if(saveStatus==='saving'){ el.textContent='Saving…'; el.className='save-status'; }
-  else if(saveStatus==='saved' && lastSavedAt){ el.textContent=`✓ Saved · ${lastSavedAt.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}`; el.className='save-status ok'; }
-  else if(saveStatus==='error'){ el.textContent="⚠ Couldn't save your last change — check your connection."; el.className='save-status err'; }
-  else{ el.textContent=''; el.className='save-status'; }
+  const el = document.getElementById('saveStatusPill');
+  const textEl = document.getElementById('saveStatusText');
+  if(!el || !textEl) return;
+  if(saveStatus==='saving'){ el.className='save-pill saving'; textEl.textContent='SAVING'; }
+  else if(saveStatus==='saved' && lastSavedAt){ el.className='save-pill ok'; textEl.textContent='SAVED'; }
+  else if(saveStatus==='error'){ el.className='save-pill err'; textEl.textContent='ERROR'; }
+  else{ el.className='save-pill'; textEl.textContent='—'; }
 }
 
 async function saveAll(){
@@ -1248,7 +1304,7 @@ async function getCoachingNote(exId){
 function qCanAdvance(){
   const q = QUESTIONS[qIndex];
   if(q.type==='single') return qAnswers[q.key] !== undefined && qAnswers[q.key] !== null;
-  if(q.type==='multi') return true;
+  if(q.type==='multi') return (qAnswers[q.key]||[]).length >= (q.minSelect||0);
   if(q.type==='numbers'){
     return q.fields.every(f=>{
       const v = qAnswers[f.key];
@@ -1267,9 +1323,9 @@ function renderQuestionnaire(){
       <div class="q-option ${qAnswers[q.key]===o.value?'selected':''}" data-val="${o.value}">${o.label}</div>
     `).join('')}</div>`;
   } else if(q.type==='multi'){
-    if(!Array.isArray(qAnswers.avoid)) qAnswers.avoid = [];
+    if(!Array.isArray(qAnswers[q.key])) qAnswers[q.key] = [];
     body = `<div class="q-chips">${q.options.map(o=>`
-      <div class="q-chip ${qAnswers.avoid.includes(o.value)?'selected':''}" data-val="${o.value}">${o.label}</div>
+      <div class="q-chip ${qAnswers[q.key].includes(o.value)?'selected':''}" data-val="${o.value}">${o.label}</div>
     `).join('')}</div>`;
   } else if(q.type==='numbers'){
     body = `<div class="q-input-row">${q.fields.map(f=>`
@@ -1304,8 +1360,8 @@ function renderQuestionnaire(){
     root().querySelectorAll('.q-chip').forEach(el=>{
       el.onclick = ()=>{
         const v = el.dataset.val;
-        const idx = qAnswers.avoid.indexOf(v);
-        if(idx>=0) qAnswers.avoid.splice(idx,1); else qAnswers.avoid.push(v);
+        const idx = qAnswers[q.key].indexOf(v);
+        if(idx>=0) qAnswers[q.key].splice(idx,1); else qAnswers[q.key].push(v);
         renderQuestionnaire();
       };
     });
@@ -1336,14 +1392,14 @@ async function finalizeOnboarding(){
   // account (no prior onboarded profile) starts streak/freeze state fresh.
   const isRetake = !!(profile && profile.onboarded);
   const genInput = {
-    goal: qAnswers.goal, experience: qAnswers.experience, days: qAnswers.days,
+    goals: qAnswers.goals||[], experience: qAnswers.experience, days: qAnswers.days,
     equipment: qAnswers.equipment, currentWeight: qAnswers.currentWeight, avoid: qAnswers.avoid||[],
     sex: qAnswers.sex || 'unspecified',
   };
   const newPlan = generatePlan(genInput);
   const profileRow = {
     id: currentUser.id, email: currentUser.email,
-    goal: qAnswers.goal, experience: qAnswers.experience, days_per_week: qAnswers.days,
+    goals: qAnswers.goals||[], experience: qAnswers.experience, days_per_week: qAnswers.days,
     equipment: qAnswers.equipment, activity: qAnswers.activity, diet: qAnswers.diet,
     current_weight: qAnswers.currentWeight, goal_weight: qAnswers.goalWeight,
     timeframe_weeks: qAnswers.timeframeWeeks, avoid: qAnswers.avoid||[], onboarded: true,
@@ -1371,7 +1427,7 @@ async function finalizeOnboarding(){
 
 function startRetake(){
   qAnswers = {
-    goal:profile.goal, experience:profile.experience, days:profile.days_per_week, equipment:profile.equipment,
+    goals:profile.goals||[], experience:profile.experience, days:profile.days_per_week, equipment:profile.equipment,
     activity:profile.activity, diet:profile.diet, currentWeight:profile.current_weight, goalWeight:profile.goal_weight,
     timeframeWeeks:profile.timeframe_weeks, avoid:profile.avoid||[], sex:profile.sex||'unspecified',
   };
@@ -1775,7 +1831,7 @@ async function handleDeleteEx(exId){
 /* ============================== DASHBOARD RENDER ============================== */
 function renderDashboard(){
   const N = plan.days.length;
-  const macros = computeMacros({currentWeight: currentWeight(), activity: profile.activity, goal: profile.goal});
+  const macros = computeMacros({currentWeight: currentWeight(), activity: profile.activity, goals: profile.goals});
   const meals = MEALS[profile.diet] || MEALS.none;
   const startWeight = profile.current_weight, goalWeight = profile.goal_weight;
   const cw = currentWeight();
@@ -1806,24 +1862,13 @@ function renderDashboard(){
   const hasPrev = dayIdx > 0, hasNext = dayIdx < plan.days.length-1;
 
   const heroRadius = 37, heroCircumference = 2*Math.PI*heroRadius;
-  root().innerHTML = `
+  const overviewHtml = `
     <div class="hero-header">
       <div class="hero-header-bg"></div>
-      <div class="hero-nav">
-        <div class="hero-nav-group">
-          <button class="icon-btn" id="accountLink" title="Account">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          </button>
-          <button class="icon-btn" id="themeToggleBtn" title="Theme">${themeToggleSvg()}</button>
-        </div>
-        <button class="icon-btn" id="signOutLink" title="Sign Out">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        </button>
-      </div>
       <div class="hero-main">
         <div>
           <h1 class="hero-logo">GRIND<br>MODE</h1>
-          <div class="hero-badge"><span class="dot"></span>${SPLIT_LABEL[profile.days_per_week]} · ${GOAL_LABEL[profile.goal]}</div>
+          <div class="hero-badge"><span class="dot"></span>${SPLIT_LABEL[profile.days_per_week]} · ${goalsLabel(profile.goals)}</div>
           ${streakWeeks>0 ? `<div class="streak-pill">🔥 ${streakWeeks}-week streak${streakFreezes>0 ? ` · ${streakFreezes} freeze${streakFreezes===1?'':'s'} left` : ''}</div>` : ''}
         </div>
         <div class="hero-ring-wrap">
@@ -1846,12 +1891,10 @@ function renderDashboard(){
       </div>
     </div>
 
-    <div class="save-status" id="saveStatus"></div>
-
     <div class="plan-stats-grid">
       <div class="plan-stat-card">
         <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></div>
-        <div class="plan-stat-text"><span class="plan-stat-label">Goal</span><span class="plan-stat-value">${GOAL_LABEL[profile.goal]}</span></div>
+        <div class="plan-stat-text"><span class="plan-stat-label">Goal</span><span class="plan-stat-value">${goalsLabel(profile.goals)}</span></div>
       </div>
       <div class="plan-stat-card">
         <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
@@ -1944,7 +1987,9 @@ function renderDashboard(){
         <p class="diet-note">This is general guidance, not personalized medical or dietetic advice — a registered dietitian can tailor exact numbers to you.</p>
       ` : ''}
     </div>
+  `;
 
+  const workoutHtml = `
     <div class="day-tabs" id="dayTabs" style="grid-template-columns:repeat(${N},1fr);"></div>
     <div class="swipe-nav">
       <span class="swipe-chevron ${hasPrev?'':'disabled'}" id="prevDayBtn">${hasPrev ? '‹ '+plan.days[dayIdx-1].title : ''}</span>
@@ -1960,23 +2005,47 @@ function renderDashboard(){
     <button class="reset-btn" id="resetBtn">Reset This Week</button>
   `;
 
-  // day tabs
-  const tabsWrap = document.getElementById('dayTabs');
-  plan.days.forEach(dd=>{
-    const {pct:tp} = dayProgress(dd.day);
-    const btn = document.createElement('div');
-    btn.className = 'day-tab' + (dd.day===activeDay?' active':'') + (tp===1?' complete':'');
-    btn.dataset.split = dd.split;
-    btn.style.setProperty('--accent', `var(--${dd.split})`);
-    const flag = dd.day===upNext ? `<span class="today-flag">Up Next</span>` : '';
-    btn.innerHTML = `${flag}<span class="dnum">${dd.day}</span><span class="dsplit">${dd.split}</span><span class="dot"></span>`;
-    btn.onclick = ()=> goToDay(dd.day);
-    tabsWrap.appendChild(btn);
-  });
+  root().innerHTML = `
+    <div class="app-topbar">
+      <div class="hero-nav-group">
+        <button class="icon-btn" id="accountLink" title="Account">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </button>
+        <button class="icon-btn" id="themeToggleBtn" title="Theme">${themeToggleSvg()}</button>
+      </div>
+      <div class="save-pill" id="saveStatusPill"><span class="save-dot"></span><span id="saveStatusText">—</span></div>
+      <button class="icon-btn" id="signOutLink" title="Sign Out">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      </button>
+    </div>
 
-  // day content
-  const isUpNext = d.day === upNext;
-  const header = `
+    ${dashboardPage==='overview' ? overviewHtml : workoutHtml}
+
+    <div class="bottom-tabs">
+      <button class="bottom-tab ${dashboardPage==='overview'?'active':''}" data-page="overview"><span class="bt-icon">🏠</span>OVERVIEW</button>
+      <button class="bottom-tab ${dashboardPage==='workout'?'active':''}" data-page="workout"><span class="bt-icon">🏋️</span>WORKOUT</button>
+    </div>
+  `;
+
+
+  if(dashboardPage==='workout'){
+    // day tabs
+    const tabsWrap = document.getElementById('dayTabs');
+    plan.days.forEach(dd=>{
+      const {pct:tp} = dayProgress(dd.day);
+      const btn = document.createElement('div');
+      btn.className = 'day-tab' + (dd.day===activeDay?' active':'') + (tp===1?' complete':'');
+      btn.dataset.split = dd.split;
+      btn.style.setProperty('--accent', `var(--${dd.split})`);
+      const flag = dd.day===upNext ? `<span class="today-flag">Up Next</span>` : '';
+      btn.innerHTML = `${flag}<span class="dnum">${dd.day}</span><span class="dsplit">${dd.split}</span><span class="dot"></span>`;
+      btn.onclick = ()=> goToDay(dd.day);
+      tabsWrap.appendChild(btn);
+    });
+
+    // day content
+    const isUpNext = d.day === upNext;
+    const header = `
     <div class="day-header ${d.split}">
       <div class="day-header-bg"></div>
       <span class="eyebrow">Day ${d.day} of ${N}${isUpNext ? `<span class="today-pill">Up Next</span>`:''}</span>
@@ -2098,31 +2167,45 @@ function renderDashboard(){
     weekGrid.appendChild(cell);
   });
 
-  // bindings
-  document.getElementById('accountLink').onclick = ()=>{ APP_STATE='account'; render(); };
-  document.getElementById('themeToggleBtn').onclick = toggleTheme;
-  document.getElementById('signOutLink').onclick = handleSignOut;
   if(hasPrev) document.getElementById('prevDayBtn').onclick = ()=> goToDay(plan.days[dayIdx-1].day);
   if(hasNext) document.getElementById('nextDayBtn').onclick = ()=> goToDay(plan.days[dayIdx+1].day);
-  const wBtn = document.getElementById('logWeightBtn');
-  const wInp = document.getElementById('weightInput');
-  wBtn.onclick = ()=>{ logWeight(wInp.value); wInp.value=''; };
-  wInp.addEventListener('keydown', e=>{ if(e.key==='Enter') wBtn.click(); });
-  document.querySelectorAll('.recovery-btn').forEach(btn=>{
-    btn.onclick = ()=>{ recoveryEditing = false; logRecovery(btn.dataset.level); };
-  });
-  const recoveryChangeBtn = document.getElementById('recoveryChangeBtn');
-  if(recoveryChangeBtn) recoveryChangeBtn.onclick = ()=>{ recoveryEditing = true; renderDashboard(); };
-  const weightToggle = document.getElementById('weightDetailsToggle');
-  if(weightToggle) weightToggle.onclick = ()=>{ weightDetailsOpen = !weightDetailsOpen; renderDashboard(); };
-  const dietToggle = document.getElementById('dietDetailsToggle');
-  if(dietToggle) dietToggle.onclick = ()=>{ dietDetailsOpen = !dietDetailsOpen; renderDashboard(); };
   document.getElementById('resetBtn').onclick = async ()=>{
     plan.days.forEach(dd=> dd.exercises.forEach(ex=> delete trackerState[trackerKey(dd.day, ex.id)]));
     await saveAll();
     renderDashboard();
   };
+  } // end dashboardPage==='workout'
+
+  if(dashboardPage==='overview'){
+    const wBtn = document.getElementById('logWeightBtn');
+    const wInp = document.getElementById('weightInput');
+    wBtn.onclick = ()=>{ logWeight(wInp.value); wInp.value=''; };
+    wInp.addEventListener('keydown', e=>{ if(e.key==='Enter') wBtn.click(); });
+    document.querySelectorAll('.recovery-btn').forEach(btn=>{
+      btn.onclick = ()=>{ recoveryEditing = false; logRecovery(btn.dataset.level); };
+    });
+    const recoveryChangeBtn = document.getElementById('recoveryChangeBtn');
+    if(recoveryChangeBtn) recoveryChangeBtn.onclick = ()=>{ recoveryEditing = true; renderDashboard(); };
+    const weightToggle = document.getElementById('weightDetailsToggle');
+    if(weightToggle) weightToggle.onclick = ()=>{ weightDetailsOpen = !weightDetailsOpen; renderDashboard(); };
+    const dietToggle = document.getElementById('dietDetailsToggle');
+    if(dietToggle) dietToggle.onclick = ()=>{ dietDetailsOpen = !dietDetailsOpen; renderDashboard(); };
+  }
+
+  // bindings shared by both pages
+  document.getElementById('accountLink').onclick = ()=>{ APP_STATE='account'; render(); };
+  document.getElementById('themeToggleBtn').onclick = toggleTheme;
+  document.getElementById('signOutLink').onclick = handleSignOut;
+  document.querySelectorAll('.bottom-tab').forEach(btn=>{
+    btn.onclick = ()=> setDashboardPage(btn.dataset.page);
+  });
   renderSaveStatus();
+}
+
+function setDashboardPage(page){
+  if(page === dashboardPage) return;
+  dashboardPage = page;
+  renderDashboard();
 }
 
 /* ============================== AUTH / INFO SCREENS ============================== */
@@ -2268,7 +2351,7 @@ function renderAccount(){
     <div class="account-card">
       <div class="account-row"><span>Email</span><b>${escapeHtml(currentUser.email)}</b></div>
       <div class="account-row"><span>Member Since</span><b>${memberSince}</b></div>
-      <div class="account-row"><span>Goal</span><b>${GOAL_LABEL[profile.goal]}</b></div>
+      <div class="account-row"><span>Goal</span><b>${goalsLabel(profile.goals)}</b></div>
       <div class="account-row"><span>Experience</span><b>${EXPERIENCE_LABEL[profile.experience]||profile.experience}</b></div>
       <div class="account-row"><span>Split</span><b>${SPLIT_LABEL[profile.days_per_week]}</b></div>
       <div class="account-row"><span>Equipment</span><b>${EQUIP_LABEL[profile.equipment]}</b></div>
@@ -2403,22 +2486,26 @@ function maybeShowStreakToast(){
 }
 
 function setupSwipeGestures(){
+  // Swipe now switches between the Overview and Workout pages instead of
+  // between workout days -- day-to-day navigation still works fine via the
+  // day tabs and the prev/next chevrons, both of which are plain taps, not
+  // swipes, so nothing about moving between days actually breaks here.
   let touchStartX = null, touchStartY = null;
   document.addEventListener('touchstart', (e)=>{
-    const dc = document.getElementById('dayContent');
-    if(!dc || !dc.contains(e.target)){ touchStartX = null; return; }
+    if(APP_STATE!=='dashboard'){ touchStartX = null; return; }
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
   }, {passive:true});
   document.addEventListener('touchend', (e)=>{
-    if(touchStartX===null || APP_STATE!=='dashboard' || !plan || addFormOpen || editingExId){ touchStartX = null; return; }
+    const focused = document.activeElement;
+    const inTextField = focused && (focused.tagName==='INPUT' || focused.tagName==='TEXTAREA');
+    if(touchStartX===null || APP_STATE!=='dashboard' || addFormOpen || editingExId || inTextField){ touchStartX = null; return; }
     const dx = e.changedTouches[0].clientX - touchStartX;
     const dy = e.changedTouches[0].clientY - touchStartY;
     touchStartX = null;
     if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)*1.5) return;
-    const idx = plan.days.findIndex(dd=>dd.day===activeDay);
-    if(dx < 0 && idx < plan.days.length-1) goToDay(plan.days[idx+1].day);
-    else if(dx > 0 && idx > 0) goToDay(plan.days[idx-1].day);
+    if(dx < 0 && dashboardPage==='overview') setDashboardPage('workout');
+    else if(dx > 0 && dashboardPage==='workout') setDashboardPage('overview');
   }, {passive:true});
 }
 
