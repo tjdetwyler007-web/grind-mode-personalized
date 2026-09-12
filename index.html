@@ -231,6 +231,15 @@
   .week-cell .wp-fill{height:100%; border-radius:3px;}
 
   .weight-card{background:var(--card); border:1.5px solid var(--gold-dim); border-radius:16px; padding:18px 18px 16px; margin-bottom:18px;}
+  .recovery-card{background:var(--card); border:1.5px solid var(--line); border-radius:16px; padding:14px 16px; margin-bottom:18px;}
+  .recovery-prompt{font-size:13px; font-weight:700; color:var(--ink); margin-bottom:10px;}
+  .recovery-options{display:flex; gap:8px;}
+  .recovery-btn{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px; border-radius:12px; border:1.5px solid var(--line); background:var(--bg-2); font-size:20px; cursor:pointer; color:var(--ink);}
+  .recovery-btn span{font-size:11px; font-family:'Teko',sans-serif; letter-spacing:0.3px;}
+  .recovery-btn:active{transform:scale(0.96);}
+  .recovery-done{display:flex; align-items:center; justify-content:space-between; font-size:13px; color:var(--ink);}
+  .recovery-done button{background:none; border:none; color:var(--gold); font-family:'Teko',sans-serif; font-size:13px; letter-spacing:0.3px; cursor:pointer; padding:4px 8px;}
+  .recovery-note{margin-top:10px; padding-top:10px; border-top:1px solid var(--line); font-size:12px; color:var(--muted); line-height:1.5;}
   .weight-head{display:flex; align-items:flex-end; justify-content:space-between; gap:10px;}
   .weight-label-sm{font-size:10.5px; text-transform:uppercase; letter-spacing:0.8px; color:var(--muted); font-weight:700;}
   .weight-current{font-family:'Bungee',sans-serif; font-size:32px; color:var(--gold); line-height:1; margin-top:4px;}
@@ -431,6 +440,7 @@
 
   /* --- Per-exercise edit/delete + manual add form --- */
   .ex-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:10px;}
+  .coach-note{margin-top:10px; padding:10px 12px; background:var(--bg-2); border:1.5px solid var(--gold-dim); border-radius:10px; font-size:12.5px; color:var(--ink); line-height:1.5;}
   .icon-btn-sm{width:28px; height:28px; border-radius:50%; border:1.5px solid var(--line); background:rgba(127,127,127,0.08); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:border-color .15s ease, transform .15s ease;}
   .icon-btn-sm:active{transform:scale(0.9);}
   .icon-btn-sm svg{width:14px; height:14px; stroke:var(--gold);}
@@ -486,6 +496,12 @@
     color:var(--ink); font-weight:600; white-space:nowrap;
   }
   .hero-badge .dot{width:6px; height:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 6px var(--gold); flex-shrink:0;}
+  .streak-pill{
+    display:inline-flex; align-items:center; margin-top:6px;
+    background:var(--bg-2); border:1.5px solid var(--line); border-radius:20px;
+    padding:4px 12px; font-family:'Teko',sans-serif; font-size:12px; letter-spacing:0.3px;
+    color:var(--ink); font-weight:600; white-space:nowrap;
+  }
   .hero-ring-wrap{position:relative; width:82px; height:82px; flex-shrink:0;}
   .hero-ring-label{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
   .hero-pct{font-family:'Bungee',sans-serif; font-size:18px; color:var(--on-photo-heading); line-height:1;}
@@ -746,6 +762,11 @@ const TEMPLATES = {
 };
 
 const EXP_MULT = {beginner:0.65, intermediate:1.0, advanced:1.3};
+// A population-average calibration only -- individual strength varies far
+// more than sex alone predicts. Defaults to 1 (no change) for anyone who
+// hasn't answered or skipped the question, including everyone who was
+// already using the app before this field existed.
+const SEX_MULT = {male:1.0, female:0.72, unspecified:1.0};
 const EXP_CAP = {beginner:5, intermediate:6, advanced:7};
 const EQUIP_ALLOWED = {full_gym:['barbell','dumbbell','machine','cable','bodyweight','bench'], home_dumbbells:['dumbbell','bodyweight','bench'], bodyweight:['bodyweight']};
 const REP_RANGES = {
@@ -785,8 +806,9 @@ function materialize(e, profile){
   let weightDisplay = '—';
   if(e.unit !== 'bodyweight'){
     const mult = EXP_MULT[profile.experience] || 1;
+    const sexMult = SEX_MULT[profile.sex] || 1;
     const bwRatio = e.bwScaled ? (profile.currentWeight / 183) : 1;
-    let w = Math.round((e.seed * mult * bwRatio) / 5) * 5;
+    let w = Math.round((e.seed * mult * sexMult * bwRatio) / 5) * 5;
     w = Math.max(5, w);
     weightDisplay = String(w);
   }
@@ -900,6 +922,8 @@ const QUESTIONS = [
   {key:'experience', title:'How would you describe your training experience?', type:'single', options:[
     {value:'beginner', label:'Beginner (0–1 yr)'}, {value:'intermediate', label:'Intermediate (1–3 yrs)'},
     {value:'advanced', label:'Advanced (3+ yrs)'} ]},
+  {key:'sex', title:'Biological sex (helps us start your suggested weights in the right range)', type:'single', options:[
+    {value:'male', label:'Male'}, {value:'female', label:'Female'}, {value:'unspecified', label:'Prefer not to say'} ]},
   {key:'days', title:'How many days a week can you train?', type:'single', options:[
     {value:3, label:'3 Days'}, {value:4, label:'4 Days'}, {value:5, label:'5 Days'}, {value:6, label:'6 Days'} ]},
   {key:'equipment', title:'What equipment do you have access to?', type:'single', options:[
@@ -926,17 +950,24 @@ let currentUser = null;
 let profile = null;
 let plan = null;
 let trackerState = {}, trackerHistory = [], weightLog = [];
+let streakWeeks = 0, streakFreezes = 2, lastFreezeRefillMonth = null;
+let recoveryLog = []; // [{date, level: 'fresh'|'okay'|'wiped'}] -- reflection only, does not change suggested weights (yet)
+let exerciseHistory = {}; // {[exerciseId]: [true, false, ...]} -- one entry per week, "was every occurrence of this exercise fully completed that week", oldest first
+let pendingStreakToast = null;
+let pendingProgressionToast = null;
 let qIndex = 0, qAnswers = {};
 let activeDay = 1;
 let pendingEmail = '';
 let saveStatus = 'idle', lastSavedAt = null;
 let deleteConfirmOpen = false;
 let addFormOpen = false, editingExId = null, deleteConfirmExId = null;
-let weightDetailsOpen = false, dietDetailsOpen = false;
+let weightDetailsOpen = false, dietDetailsOpen = false, recoveryEditing = false;
+let coachingNoteExId = null, coachingNoteText = null, coachingNoteLoading = false, coachingNoteError = null;
 
 function goToDay(dayNum){
   activeDay = dayNum;
   addFormOpen = false; editingExId = null; deleteConfirmExId = null;
+  coachingNoteExId = null; coachingNoteText = null; coachingNoteError = null;
   renderDashboard();
 }
 
@@ -960,7 +991,7 @@ async function handleSignUp(email, password, confirmPw){
   });
   authActionInFlight = false;
   if(error){ showError(error.message); return; }
-  if(data.session){ sessionHandledOnce = true; currentUser = data.session.user; await loadProfileAndData(); return; }
+  if(data.session){ sessionHandledOnce = true; currentUser = data.session.user; await loadProfileAndData(); maybeShowStreakToast(); return; }
   pendingEmail = email;
   APP_STATE = 'check-email';
   render();
@@ -986,6 +1017,7 @@ async function handleSignIn(email, password){
   sessionHandledOnce = true;
   currentUser = data.user;
   await loadProfileAndData();
+  maybeShowStreakToast();
 }
 
 async function handleForgotPassword(email){
@@ -1044,6 +1076,14 @@ async function loadProfileAndData(isRetry){
     trackerState = tracker.state || {};
     trackerHistory = tracker.history || [];
     weightLog = tracker.weightLog || [];
+    // Defaults here matter for backward compatibility: anyone whose data was
+    // saved before streaks existed gets a clean starting streak rather than
+    // undefined/NaN breaking the rollover math below.
+    streakWeeks = tracker.streakWeeks || 0;
+    streakFreezes = (typeof tracker.streakFreezes === 'number') ? tracker.streakFreezes : 2;
+    lastFreezeRefillMonth = tracker.lastFreezeRefillMonth || null;
+    recoveryLog = tracker.recoveryLog || [];
+    exerciseHistory = tracker.exerciseHistory || {};
     if(migrateTrackerState()) silentSave();
     activeDay = getUpNextDay();
     handleWeekRollover();
@@ -1066,7 +1106,7 @@ async function loadProfileAndData(isRetry){
 }
 
 function profileToGenInput(p){
-  return {goal:p.goal, experience:p.experience, days:p.days_per_week, equipment:p.equipment, currentWeight:p.current_weight, avoid:p.avoid||[]};
+  return {goal:p.goal, experience:p.experience, days:p.days_per_week, equipment:p.equipment, currentWeight:p.current_weight, avoid:p.avoid||[], sex:p.sex||'unspecified'};
 }
 
 let writeLock = Promise.resolve();
@@ -1075,7 +1115,7 @@ function saveUserData(){
     const {error} = await sb.from('user_data').upsert({
       id: currentUser.id,
       plan,
-      tracker: {state: trackerState, history: trackerHistory, weightLog},
+      tracker: {state: trackerState, history: trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog, exerciseHistory},
       updated_at: new Date().toISOString(),
     });
     if(error) throw error;
@@ -1157,6 +1197,51 @@ async function confirmDeleteData(){
   }catch(e){
     showError('Could not delete your data: ' + e.message);
   }
+}
+
+// Calls the delete-account Edge Function, which is the only thing that can
+// safely remove the actual login credential (that requires a service-role
+// key, which must never exist in this file or any browser). If the function
+// hasn't been deployed yet, this fails clearly rather than pretending to
+// have deleted an account it couldn't reach.
+async function confirmPermanentDelete(){
+  try{
+    const {data, error} = await sb.functions.invoke('delete-account', {});
+    if(error) throw error;
+    if(!data || !data.success) throw new Error((data && data.error) || 'Unknown error from delete-account function');
+    await sb.auth.signOut();
+    currentUser = null; profile = null; plan = null;
+    trackerState = {}; trackerHistory = []; weightLog = [];
+    APP_STATE = 'signin';
+    render();
+    showToast('Your account has been permanently deleted.');
+  }catch(e){
+    showError("Couldn't permanently delete your account: " + e.message + '. Your data may still be intact -- try again, or use "Erase My Data" in the meantime.');
+  }
+}
+
+// Calls the ai-coach Edge Function for one specific exercise, using the same
+// completion history the progression rules already read. Deliberately
+// on-demand (a tap, not automatic) so this costs real API money only when
+// someone actually wants a note, not on every render or every set checked.
+async function getCoachingNote(exId){
+  const dayObj = plan.days.find(d=>d.day===activeDay);
+  const ex = dayObj && dayObj.exercises.find(e=>e.id===exId);
+  if(!ex) return;
+  coachingNoteExId = exId; coachingNoteLoading = true; coachingNoteText = null; coachingNoteError = null;
+  renderDashboard();
+  try{
+    const {data, error} = await sb.functions.invoke('ai-coach', {
+      body: { exerciseName: ex.name, currentWeight: ex.weight, unit: ex.unit, recentWeeks: exerciseHistory[exId] || [] }
+    });
+    if(error) throw error;
+    if(!data || !data.note) throw new Error((data && data.error) || 'No note returned');
+    coachingNoteText = data.note;
+  }catch(e){
+    coachingNoteError = "AI coaching isn't available right now" + (e && e.message ? ` (${e.message})` : '') + '.';
+  }
+  coachingNoteLoading = false;
+  renderDashboard();
 }
 
 /* ============================== QUESTIONNAIRE FLOW ============================== */
@@ -1245,9 +1330,15 @@ async function finalizeOnboarding(){
   const btn = document.getElementById('qNext');
   if(btn){ btn.disabled = true; btn.textContent = 'Building…'; }
   hideError();
+  // Retaking the questionnaire (adjusting goals/equipment) is not the same
+  // event as a brand-new signup -- someone with a 10-week streak shouldn't
+  // lose it just because they updated their equipment. Only a genuinely new
+  // account (no prior onboarded profile) starts streak/freeze state fresh.
+  const isRetake = !!(profile && profile.onboarded);
   const genInput = {
     goal: qAnswers.goal, experience: qAnswers.experience, days: qAnswers.days,
     equipment: qAnswers.equipment, currentWeight: qAnswers.currentWeight, avoid: qAnswers.avoid||[],
+    sex: qAnswers.sex || 'unspecified',
   };
   const newPlan = generatePlan(genInput);
   const profileRow = {
@@ -1256,6 +1347,7 @@ async function finalizeOnboarding(){
     equipment: qAnswers.equipment, activity: qAnswers.activity, diet: qAnswers.diet,
     current_weight: qAnswers.currentWeight, goal_weight: qAnswers.goalWeight,
     timeframe_weeks: qAnswers.timeframeWeeks, avoid: qAnswers.avoid||[], onboarded: true,
+    sex: qAnswers.sex || 'unspecified',
     created_at: new Date().toISOString(),
   };
   try{
@@ -1265,7 +1357,8 @@ async function finalizeOnboarding(){
     plan = newPlan;
     trackerState = {}; trackerHistory = [];
     weightLog = [{date: todayISO(), weight: qAnswers.currentWeight}];
-    const {error: dataErr} = await sb.from('user_data').upsert({id: currentUser.id, plan, tracker:{state:trackerState, history:trackerHistory, weightLog}, updated_at:new Date().toISOString()});
+    if(!isRetake){ streakWeeks = 0; streakFreezes = 2; lastFreezeRefillMonth = new Date().toISOString().slice(0,7); }
+    const {error: dataErr} = await sb.from('user_data').upsert({id: currentUser.id, plan, tracker:{state:trackerState, history:trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog:[], exerciseHistory:{}}, updated_at:new Date().toISOString()});
     if(dataErr) throw dataErr;
     activeDay = 1;
     APP_STATE = 'dashboard';
@@ -1280,7 +1373,7 @@ function startRetake(){
   qAnswers = {
     goal:profile.goal, experience:profile.experience, days:profile.days_per_week, equipment:profile.equipment,
     activity:profile.activity, diet:profile.diet, currentWeight:profile.current_weight, goalWeight:profile.goal_weight,
-    timeframeWeeks:profile.timeframe_weeks, avoid:profile.avoid||[],
+    timeframeWeeks:profile.timeframe_weeks, avoid:profile.avoid||[], sex:profile.sex||'unspecified',
   };
   qIndex = 0;
   APP_STATE = 'questionnaire';
@@ -1355,7 +1448,63 @@ function computeWeekStats(){
   plan.days.forEach(d=>{ const {done,total}=dayProgress(d.day); totalDone+=done; totalEx+=total; });
   return {done:totalDone, total:totalEx};
 }
+
+/* ============================== ADAPTIVE PROGRESSION (rule-based) ==============================
+   Runs once per week rollover, using the week that just ended. No AI here --
+   two plain rules against data the app already has:
+     - fully completed both of the last 2 weeks on an exercise -> nudge weight up
+     - missed sets both of the last 2 weeks on an exercise -> back off slightly
+   One entry per exercise per week (not per session) to match the app's
+   existing weekly rhythm rather than inventing a new one. */
+function recordAndApplyProgression(){
+  const seenIds = new Set();
+  const messages = [];
+
+  plan.days.forEach(d=>{
+    d.exercises.forEach(ex=>{
+      if(seenIds.has(ex.id)) return;
+      seenIds.add(ex.id);
+
+      // An exercise can appear on more than one day (e.g. bench press on two
+      // push days) -- "fully completed this week" means every occurrence was.
+      const occurrenceDays = plan.days.filter(dd=> dd.exercises.some(e=>e.id===ex.id)).map(dd=>dd.day);
+      const allDone = occurrenceDays.every(day=> isExerciseDone(ex, trackerState[trackerKey(day, ex.id)]));
+      if(!exerciseHistory[ex.id]) exerciseHistory[ex.id] = [];
+      exerciseHistory[ex.id].push(allDone);
+      if(exerciseHistory[ex.id].length>4) exerciseHistory[ex.id] = exerciseHistory[ex.id].slice(-4);
+
+      if(ex.unit==='bodyweight') return; // nothing numeric to adjust
+      const hist = exerciseHistory[ex.id];
+      if(hist.length<2) return;
+      const lastTwo = hist.slice(-2);
+      const w = parseFloat(ex.weight);
+      if(isNaN(w)) return;
+      let newW = null;
+      if(lastTwo[0]===true && lastTwo[1]===true) newW = w+5;
+      else if(lastTwo[0]===false && lastTwo[1]===false) newW = Math.max(5, w-5);
+      if(newW!==null && newW!==w){
+        messages.push(`${ex.name} → ${newW} lbs`);
+        plan.days.forEach(dd=> dd.exercises.forEach(e=>{ if(e.id===ex.id) e.weight = String(newW); }));
+      }
+    });
+  });
+
+  if(messages.length>0){
+    const verb = messages.length===1 ? 'Adjusted' : `Adjusted ${messages.length} exercises`;
+    pendingProgressionToast = `${verb} based on last week: ${messages.slice(0,3).join(', ')}${messages.length>3?'…':''}`;
+  }
+}
+
 function handleWeekRollover(){
+  // Freezes refill once per calendar month, independent of whether a
+  // tracker week has actually rolled over yet (someone could open the app
+  // mid-month with no week boundary crossed and still be due a refill).
+  const thisMonth = new Date().toISOString().slice(0,7);
+  if(lastFreezeRefillMonth !== thisMonth){
+    if(lastFreezeRefillMonth !== null) streakFreezes = Math.min(2, streakFreezes + 1);
+    lastFreezeRefillMonth = thisMonth;
+  }
+
   const todayWeekId = getWeekId(new Date());
   if(!trackerState.__meta){
     trackerState.__meta = {weekId: todayWeekId};
@@ -1363,9 +1512,25 @@ function handleWeekRollover(){
   } else if(trackerState.__meta.weekId !== todayWeekId){
     const oldWeekId = trackerState.__meta.weekId;
     const stats = computeWeekStats();
+    // "Good" mirrors the bar the app already celebrates with WEEK CONQUERED --
+    // one consistent definition of a complete week, rather than a second,
+    // different threshold living only in the streak math.
+    const wasGoodWeek = stats.total>0 && stats.done===stats.total;
+    let frozen = false;
     if(stats.total>0){
-      trackerHistory.push({weekId: oldWeekId, label:getWeekLabel(oldWeekId), done:stats.done, total:stats.total});
+      if(wasGoodWeek){
+        streakWeeks += 1;
+      } else if(streakFreezes>0){
+        streakFreezes -= 1;
+        frozen = true;
+        pendingStreakToast = `That week was tough — used a freeze to keep your ${streakWeeks}-week streak alive.`;
+      } else {
+        if(streakWeeks>0) pendingStreakToast = 'Streak reset — every week is a fresh start.';
+        streakWeeks = 0;
+      }
+      trackerHistory.push({weekId: oldWeekId, label:getWeekLabel(oldWeekId), done:stats.done, total:stats.total, frozen});
       if(trackerHistory.length>26) trackerHistory = trackerHistory.slice(trackerHistory.length-26);
+      recordAndApplyProgression();
     }
     trackerState = {__meta:{weekId: todayWeekId}};
     silentSave();
@@ -1393,6 +1558,36 @@ async function logWeight(rawValue){
     // always matches what's actually persisted.
     weightLog = previousWeightLog;
   }
+  renderDashboard();
+}
+
+/* ============================== RECOVERY CHECK-IN (Level 1: reflection only) ==============================
+   Deliberately does NOT change suggested weights or reorder days yet. It
+   only records how someone says they feel and reflects the pattern back to
+   them -- once this data exists and feels trustworthy, it's the foundation
+   a later, more active version could build on. */
+function todayRecoveryLevel(){
+  const today = todayISO();
+  const entry = recoveryLog.find(e=>e.date===today);
+  return entry ? entry.level : null;
+}
+function recentWipedCount(days=7){
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-days);
+  const cutoffISO = todayISOFrom(cutoff);
+  return recoveryLog.filter(e=>e.date>=cutoffISO && e.level==='wiped').length;
+}
+function todayISOFrom(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+async function logRecovery(level){
+  if(!['fresh','okay','wiped'].includes(level)) return;
+  const today = todayISO();
+  const previousRecoveryLog = JSON.parse(JSON.stringify(recoveryLog));
+  const idx = recoveryLog.findIndex(e=>e.date===today);
+  if(idx>=0) recoveryLog[idx].level = level; else recoveryLog.push({date:today, level});
+  hideError();
+  renderDashboard();
+  const ok = await saveAll();
+  if(!ok){ recoveryLog = previousRecoveryLog; }
   renderDashboard();
 }
 
@@ -1629,6 +1824,7 @@ function renderDashboard(){
         <div>
           <h1 class="hero-logo">GRIND<br>MODE</h1>
           <div class="hero-badge"><span class="dot"></span>${SPLIT_LABEL[profile.days_per_week]} · ${GOAL_LABEL[profile.goal]}</div>
+          ${streakWeeks>0 ? `<div class="streak-pill">🔥 ${streakWeeks}-week streak${streakFreezes>0 ? ` · ${streakFreezes} freeze${streakFreezes===1?'':'s'} left` : ''}</div>` : ''}
         </div>
         <div class="hero-ring-wrap">
           <svg width="82" height="82" viewBox="0 0 82 82" style="transform:rotate(-90deg);">
@@ -1674,6 +1870,23 @@ function renderDashboard(){
     <div class="stats-strip">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12M6 12a2 2 0 1 1 -4 0 2 2 0 0 1 4 0zM22 12a2 2 0 1 1 -4 0 2 2 0 0 1 4 0z"></path></svg>
       <span>Suggested weights are starting points scaled to your experience level and bodyweight — adjust based on how each set actually feels. Not personalized medical or coaching advice.</span>
+    </div>
+
+    <div class="recovery-card" id="recoveryCard">
+      ${(todayRecoveryLevel() && !recoveryEditing) ? `
+        <div class="recovery-done">
+          <span>Today: <b>${{fresh:'🔋 Fresh', okay:'😐 Okay', wiped:'😴 Wiped'}[todayRecoveryLevel()]}</b></span>
+          <button id="recoveryChangeBtn">Change</button>
+        </div>
+      ` : `
+        <div class="recovery-prompt">How are you feeling today?</div>
+        <div class="recovery-options">
+          <button class="recovery-btn" data-level="fresh">🔋<span>Fresh</span></button>
+          <button class="recovery-btn" data-level="okay">😐<span>Okay</span></button>
+          <button class="recovery-btn" data-level="wiped">😴<span>Wiped</span></button>
+        </div>
+      `}
+      ${recentWipedCount()>=2 ? `<div class="recovery-note">You've logged "wiped" ${recentWipedCount()} times this week — might be worth an easier session or an extra rest day.</div>` : ''}
     </div>
 
     <div class="weight-card" id="weightCard">
@@ -1816,6 +2029,9 @@ function renderDashboard(){
             </div>
           </div>` : `
           <div class="ex-actions">
+            ${(ex.unit!=='bodyweight' && exerciseHistory[ex.id] && exerciseHistory[ex.id].length>0) ? `
+              <button class="icon-btn-sm" data-coach-ex="${ex.id}" title="AI coaching note">🤖</button>
+            ` : ''}
             <button class="icon-btn-sm" data-edit-ex="${ex.id}" title="Edit">
               <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
             </button>
@@ -1823,6 +2039,10 @@ function renderDashboard(){
               <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
             </button>
           </div>`}
+        ${coachingNoteExId===ex.id ? `
+          <div class="coach-note">
+            ${coachingNoteLoading ? '🤖 Thinking…' : coachingNoteError ? `⚠ ${escapeHtml(coachingNoteError)}` : `🤖 ${escapeHtml(coachingNoteText)}`}
+          </div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -1844,6 +2064,9 @@ function renderDashboard(){
   });
   document.querySelectorAll('[data-edit-ex]').forEach(el=>{
     el.onclick = ()=>{ editingExId = el.dataset.editEx; deleteConfirmExId = null; addFormOpen = false; renderDashboard(); };
+  });
+  document.querySelectorAll('[data-coach-ex]').forEach(el=>{
+    el.onclick = ()=>{ getCoachingNote(el.dataset.coachEx); };
   });
   document.querySelectorAll('[data-del-ex]').forEach(el=>{
     el.onclick = ()=>{ deleteConfirmExId = el.dataset.delEx; editingExId = null; renderDashboard(); };
@@ -1885,6 +2108,11 @@ function renderDashboard(){
   const wInp = document.getElementById('weightInput');
   wBtn.onclick = ()=>{ logWeight(wInp.value); wInp.value=''; };
   wInp.addEventListener('keydown', e=>{ if(e.key==='Enter') wBtn.click(); });
+  document.querySelectorAll('.recovery-btn').forEach(btn=>{
+    btn.onclick = ()=>{ recoveryEditing = false; logRecovery(btn.dataset.level); };
+  });
+  const recoveryChangeBtn = document.getElementById('recoveryChangeBtn');
+  if(recoveryChangeBtn) recoveryChangeBtn.onclick = ()=>{ recoveryEditing = true; renderDashboard(); };
   const weightToggle = document.getElementById('weightDetailsToggle');
   if(weightToggle) weightToggle.onclick = ()=>{ weightDetailsOpen = !weightDetailsOpen; renderDashboard(); };
   const dietToggle = document.getElementById('dietDetailsToggle');
@@ -2016,7 +2244,7 @@ function renderResetPassword(){
     </div>`;
   document.getElementById('rpSubmit').onclick = async ()=>{
     const ok = await handleUpdatePassword(document.getElementById('rpPassword').value, document.getElementById('rpPassword2').value);
-    if(ok) await loadProfileAndData();
+    if(ok){ await loadProfileAndData(); maybeShowStreakToast(); }
   };
   wirePasswordToggles();
 }
@@ -2066,11 +2294,13 @@ function renderAccount(){
     <div class="account-actions" style="margin-top:20px;">
       <button class="btn-secondary" id="editPlanBtn">Edit Plan</button>
       <button class="btn-secondary" id="changePasswordBtn">Change Password</button>
-      <button class="btn-danger" id="deleteDataBtn">Delete My Data</button>
+      <button class="btn-danger" id="deleteDataBtn">Erase My Data</button>
+      <button class="btn-danger" id="deleteAccountBtn">Permanently Delete Account</button>
     </div>
     <div id="changePasswordArea"></div>
     <div id="retakeConfirmArea"></div>
     <div id="deleteConfirmArea"></div>
+    <div id="permDeleteConfirmArea"></div>
   `;
 
   document.getElementById('backToDash').onclick = ()=>{ APP_STATE='dashboard'; render(); };
@@ -2109,14 +2339,34 @@ function renderAccount(){
     deleteConfirmOpen = true;
     document.getElementById('deleteConfirmArea').innerHTML = `
       <div class="confirm-box">
-        This permanently deletes your profile, plan, weight log, and workout history. This does not remove your login credential itself — you'd need to contact support or use the account-deletion function if one is configured. This cannot be undone.
+        This permanently deletes your profile, plan, weight log, and workout history. Your login itself stays active — you could sign back in and start the questionnaire fresh. If you want your login removed too, use "Permanently Delete Account" instead. This cannot be undone.
         <div class="row">
           <button id="cancelDelete">Cancel</button>
-          <button class="danger" id="reallyDelete">Yes, Delete My Data</button>
+          <button class="danger" id="reallyDelete">Yes, Erase My Data</button>
         </div>
       </div>`;
     document.getElementById('cancelDelete').onclick = ()=>{ deleteConfirmOpen=false; document.getElementById('deleteConfirmArea').innerHTML=''; };
     document.getElementById('reallyDelete').onclick = confirmDeleteData;
+  };
+  document.getElementById('deleteAccountBtn').onclick = ()=>{
+    document.getElementById('permDeleteConfirmArea').innerHTML = `
+      <div class="confirm-box">
+        This deletes everything "Erase My Data" does, PLUS your actual login itself. You will not be able to sign back in with this email afterward, and there is no way to undo this. Type your email to confirm.
+        <input type="text" id="permDeleteConfirmEmail" placeholder="${escapeHtml(currentUser.email)}" style="width:100%; margin-top:10px; padding:9px 11px; border-radius:8px; border:1.5px solid var(--line); background:var(--bg-2); color:var(--ink); font-size:13px;">
+        <div class="row">
+          <button id="cancelPermDelete">Cancel</button>
+          <button class="danger" id="reallyPermDelete">Permanently Delete Everything</button>
+        </div>
+      </div>`;
+    document.getElementById('cancelPermDelete').onclick = ()=>{ document.getElementById('permDeleteConfirmArea').innerHTML=''; };
+    document.getElementById('reallyPermDelete').onclick = ()=>{
+      const typed = document.getElementById('permDeleteConfirmEmail').value.trim();
+      if(typed.toLowerCase() !== currentUser.email.toLowerCase()){
+        showError('Type your email exactly to confirm permanent deletion.');
+        return;
+      }
+      confirmPermanentDelete();
+    };
   };
 }
 
@@ -2139,6 +2389,16 @@ function maybeShowConfirmToast(){
   if(arrivedViaEmailConfirm && !confirmToastShown){
     confirmToastShown = true;
     showToast('✓ Email confirmed — you\'re in!');
+  }
+}
+function maybeShowStreakToast(){
+  if(pendingStreakToast){
+    showToast(pendingStreakToast);
+    pendingStreakToast = null;
+  }
+  if(pendingProgressionToast){
+    showToast(pendingProgressionToast);
+    pendingProgressionToast = null;
   }
 }
 
@@ -2193,6 +2453,7 @@ async function init(){
     currentUser = session.user;
     await loadProfileAndData();
     maybeShowConfirmToast();
+    maybeShowStreakToast();
   } else {
     APP_STATE = 'signin';
     render();
@@ -2207,7 +2468,7 @@ async function init(){
     } else if(event==='SIGNED_IN' && session && !sessionHandledOnce){
       sessionHandledOnce = true;
       currentUser = session.user;
-      loadProfileAndData().then(maybeShowConfirmToast);
+      loadProfileAndData().then(()=>{ maybeShowConfirmToast(); maybeShowStreakToast(); });
     } else if(event==='SIGNED_OUT'){
       sessionHandledOnce = false;
       currentUser = null; profile = null; plan = null;
