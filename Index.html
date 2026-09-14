@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- GRIND MODE Manga Training Arc — deployable build, regression verified 2026-09-14 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -476,7 +477,7 @@
   .landing-hero-bg{
     position:absolute; inset:0; background-size:cover; background-position:center;
     filter:grayscale(1) contrast(1.2) brightness(1.15);
-    background-image:url('https://images.pexels.com/photos/6455951/pexels-photo-6455951.jpeg?auto=compress&w=800');
+    background-image:none;
   }
   .landing-hero-scrim{
     position:absolute; inset:0;
@@ -689,6 +690,41 @@
   .evo-stage span{display:block;font:700 8px 'JetBrains Mono',monospace;color:var(--muted);margin-top:6px;}
   html[data-theme="light"] .hero-header{box-shadow:0 12px 35px rgba(62,45,15,.12);}
   html[data-theme="light"] .coach-fab{box-shadow:0 5px 18px var(--persona-accent-soft);}
+
+
+
+  /* ============================== DEPLOYABLE AUTH REDESIGN ============================== */
+  .auth-manga-screen{margin:-2px 0 0; padding:18px 0 26px; color:#f6f2e8;}
+  .auth-manga-brand{position:relative; overflow:hidden; background:#08080a; border:1px solid #3d310b; border-radius:22px; padding:28px 22px 22px; margin-bottom:16px; box-shadow:0 18px 50px rgba(0,0,0,.32), inset 0 0 0 1px rgba(242,183,5,.035);}
+  .auth-manga-brand:before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 76% 18%,rgba(242,183,5,.12),transparent 31%),repeating-linear-gradient(142deg,transparent 0 19px,rgba(242,183,5,.028) 19px 20px);pointer-events:none;}
+  .auth-manga-brand:after{content:'進';position:absolute;right:-4px;top:-20px;font:700 150px/1 'Teko',sans-serif;color:rgba(242,183,5,.045);transform:rotate(-8deg);pointer-events:none;}
+  .auth-brand-inner{position:relative;z-index:1;text-align:center;}
+  .auth-brush-logo{font:700 54px/.82 'Teko',sans-serif;font-style:italic;letter-spacing:-1.8px;color:#f2b705;text-transform:uppercase;text-shadow:3px 3px 0 rgba(0,0,0,.9);transform:skew(-4deg);margin:2px 0 12px;}
+  .auth-brush-logo span{display:block;}
+  .auth-mantra{font:700 10px/1.4 'JetBrains Mono',monospace;letter-spacing:3px;color:#f5f3ec;text-transform:uppercase;opacity:.9;}
+  .auth-gold-rule{height:2px;width:82px;background:linear-gradient(90deg,transparent,#f2b705,transparent);margin:18px auto 14px;box-shadow:0 0 12px rgba(242,183,5,.35);}
+  .auth-promise{font:500 12px/1.5 'Inter',sans-serif;color:#bdb8ae;max-width:330px;margin:0 auto;}
+  .auth-benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:19px;}
+  .auth-benefit{padding:9px 5px;border-top:1px solid rgba(242,183,5,.35);color:#f2b705;text-align:center;}
+  .auth-benefit b{display:block;font:700 18px/1 'Teko',sans-serif;margin-bottom:4px;}
+  .auth-benefit span{display:block;font:700 8px/1.25 'JetBrains Mono',monospace;color:#a8a39a;text-transform:uppercase;letter-spacing:.2px;}
+  .auth-manga-card{background:#101014!important;border:1px solid #40340d!important;border-radius:20px!important;box-shadow:0 16px 50px rgba(0,0,0,.28);padding:22px!important;color:#f5f3ec;}
+  .auth-manga-card h2{font:700 31px/1 'Teko',sans-serif!important;color:#f2b705!important;letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px!important;}
+  .auth-manga-card .sub{color:#aaa59d!important;font-size:12px!important;margin-bottom:20px!important;}
+  .auth-manga-card .auth-field label{color:#8f8a82!important;font:700 9px/1 'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
+  .auth-manga-card input{background:#09090c!important;border:1px solid #34343c!important;color:#fff!important;border-radius:12px!important;box-shadow:none!important;}
+  .auth-manga-card input:focus{border-color:#f2b705!important;box-shadow:0 0 0 2px rgba(242,183,5,.12)!important;}
+  .auth-manga-card .pw-toggle svg{stroke:#aaa59d!important;}
+  .auth-manga-card .auth-submit{background:linear-gradient(90deg,#e1a700,#ffc928)!important;color:#0b0b0d!important;border:none!important;border-radius:12px!important;box-shadow:0 0 22px rgba(242,183,5,.16)!important;font-family:'Teko',sans-serif!important;font-size:18px!important;letter-spacing:1px!important;}
+  .auth-manga-card .auth-switch{color:#817d76!important;}
+  .auth-manga-card .auth-switch a{color:#f2b705!important;font-weight:800;}
+  .auth-footer-quote{text-align:center;margin:16px 12px 0;font:700 9px/1.55 'JetBrains Mono',monospace;color:#7f7a72;letter-spacing:2px;text-transform:uppercase;}
+  html[data-theme="light"] .auth-manga-screen{color:#f6f2e8;}
+  html[data-theme="light"] .auth-manga-card{background:#101014!important;border-color:#40340d!important;}
+  html[data-theme="light"] .auth-manga-card h2{color:#f2b705!important;}
+  html[data-theme="light"] .auth-manga-card .sub{color:#aaa59d!important;}
+  html[data-theme="light"] .auth-manga-card input{background:#09090c!important;color:#fff!important;}
+  @media(max-width:380px){.auth-brush-logo{font-size:48px}.auth-benefit span{font-size:7px}.auth-manga-brand{padding-left:16px;padding-right:16px}}
 
 </style>
 </head>
@@ -3059,44 +3095,34 @@ function setDashboardPage(page){
 
 /* ============================== AUTH / INFO SCREENS ============================== */
 function renderSignIn(){
+  // Authentication intentionally stays neutral black + gold: the male/female
+  // manga persona is selected during onboarding and takes over after completion.
   root().innerHTML = `
-    <div class="landing-intro">
-      <div class="landing-hero-photo">
-        <div class="landing-hero-bg"></div>
-        <div class="landing-hero-scrim"></div>
-        <div class="landing-hero-content">
-          <h1 class="landing-title">GRIND MODE</h1>
-          <p class="landing-tagline">YOUR TRAINING ARC BEGINS HERE.</p>
+    <div class="auth-manga-screen">
+      <div class="auth-manga-brand">
+        <div class="auth-brand-inner">
+          <div class="auth-brush-logo"><span>GRIND</span><span>MODE</span></div>
+          <div class="auth-mantra">DISCIPLINE BUILDS FREEDOM.</div>
+          <div class="auth-gold-rule"></div>
+          <p class="auth-promise">Your training arc, progression, sport, recovery and nutrition — built around the work you actually do.</p>
+          <div class="auth-benefits">
+            <div class="auth-benefit"><b>鍛</b><span>Train</span></div>
+            <div class="auth-benefit"><b>進</b><span>Progress</span></div>
+            <div class="auth-benefit"><b>続</b><span>Consistency</span></div>
+            <div class="auth-benefit"><b>強</b><span>Stronger</span></div>
+          </div>
         </div>
       </div>
-      <p class="landing-sub">Tell us your goal — we'll build the plan, the diet, and the split. You bring the effort.</p>
-      <div class="landing-features">
-        <div class="landing-feature">
-          <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></div>
-          <div><b>Personalized Plans</b><span>Matched to your goal, experience, and equipment</span></div>
-        </div>
-        <div class="landing-feature">
-          <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
-          <div><b>3–6 Day Splits</b><span>Full body, upper/lower, or push/pull/legs</span></div>
-        </div>
-        <div class="landing-feature">
-          <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg></div>
-          <div><b>Nutrition Built In</b><span>Daily macros and meal ideas for your diet</span></div>
-        </div>
-        <div class="landing-feature">
-          <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div>
-          <div><b>Track Everything</b><span>Log sets and weight, edit any workout, anytime</span></div>
-        </div>
+      <div class="auth-card auth-manga-card">
+        <h2>Sign In</h2>
+        <p class="sub">Continue your training arc.</p>
+        <div class="auth-field"><label>Email</label><input type="email" id="siEmail" autocomplete="email" placeholder="you@example.com"></div>
+        <div class="auth-field">${passwordFieldHtml('Password', 'siPassword', 'current-password')}</div>
+        <button class="auth-submit" id="siSubmit">SIGN IN →</button>
+        <div class="auth-switch">Forgot your password? <a id="toForgotPassword">Reset it</a></div>
+        <div class="auth-switch">New here? <a id="toSignUp">Create an account</a></div>
       </div>
-    </div>
-    <div class="auth-card" style="margin-top:6px;">
-      <h2>Sign In</h2>
-      <p class="sub">Pick up your plan right where you left off.</p>
-      <div class="auth-field"><label>Email</label><input type="email" id="siEmail" autocomplete="email"></div>
-      <div class="auth-field">${passwordFieldHtml('Password', 'siPassword', 'current-password')}</div>
-      <button class="auth-submit" id="siSubmit">Sign In</button>
-      <div class="auth-switch">New here? <a id="toSignUp">Create an account</a></div>
-      <div class="auth-switch">Forgot your password? <a id="toForgotPassword">Reset it</a></div>
+      <div class="auth-footer-quote">TRAIN · EVOLVE · REPEAT</div>
     </div>`;
   document.getElementById('siSubmit').onclick = ()=> handleSignIn(document.getElementById('siEmail').value.trim(), document.getElementById('siPassword').value);
   document.getElementById('toSignUp').onclick = ()=>{ hideError(); APP_STATE='signup'; render(); };
@@ -3106,14 +3132,25 @@ function renderSignIn(){
 
 function renderSignUp(){
   root().innerHTML = `
-    <div class="auth-card">
-      <h2>Create Account</h2>
-      <p class="sub">We'll send a confirmation link to your email before your account activates.</p>
-      <div class="auth-field"><label>Email</label><input type="email" id="suEmail" autocomplete="email"></div>
-      <div class="auth-field">${passwordFieldHtml('Password', 'suPassword', 'new-password')}</div>
-      <div class="auth-field">${passwordFieldHtml('Confirm Password', 'suPassword2', 'new-password')}</div>
-      <button class="auth-submit" id="suSubmit">Create Account</button>
-      <div class="auth-switch">Already have an account? <a id="toSignIn">Sign in</a></div>
+    <div class="auth-manga-screen">
+      <div class="auth-manga-brand" style="padding-top:24px;padding-bottom:18px;">
+        <div class="auth-brand-inner">
+          <div class="auth-brush-logo" style="font-size:45px"><span>GRIND MODE</span></div>
+          <div class="auth-mantra">BUILD A STRONGER YOU.</div>
+          <div class="auth-gold-rule"></div>
+          <p class="auth-promise">Create your account. Your manga persona and training path are chosen during onboarding.</p>
+        </div>
+      </div>
+      <div class="auth-card auth-manga-card">
+        <h2>Create Account</h2>
+        <p class="sub">Commit today. Start your first chapter.</p>
+        <div class="auth-field"><label>Email</label><input type="email" id="suEmail" autocomplete="email" placeholder="you@example.com"></div>
+        <div class="auth-field">${passwordFieldHtml('Password', 'suPassword', 'new-password')}</div>
+        <div class="auth-field">${passwordFieldHtml('Confirm Password', 'suPassword2', 'new-password')}</div>
+        <button class="auth-submit" id="suSubmit">CREATE ACCOUNT →</button>
+        <div class="auth-switch">Already have an account? <a id="toSignIn">Sign in</a></div>
+      </div>
+      <div class="auth-footer-quote">A STRONGER YOU STARTS TODAY.</div>
     </div>`;
   document.getElementById('suSubmit').onclick = ()=> handleSignUp(document.getElementById('suEmail').value.trim(), document.getElementById('suPassword').value, document.getElementById('suPassword2').value);
   document.getElementById('toSignIn').onclick = ()=>{ hideError(); APP_STATE='signin'; render(); };
