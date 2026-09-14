@@ -17,6 +17,18 @@
     --muted: #8B8A94;
     --gold: #F2B705;
     --gold-dim: #4A3B0E;
+    --bad-text: #ffb3c0;
+    --bad-text-sub: #c98a95;
+    /* Heatmap tiers below full intensity (which already uses --gold) --
+       these were hardcoded hex values before, meaning they looked fine on
+       the dark canvas they were designed for but read as near-black,
+       barely-distinguishable blocks once the surrounding page went light.
+       Giving each tier its own variable lets light mode use an actual light
+       scale instead of inheriting dark-mode-only colors. */
+    --heat-3: #c99b0c;
+    --heat-2: #8a6c10;
+    --heat-1: #4a3b0e;
+    --heat-0: #2a2410;
     /* These three stay constant across BOTH themes on purpose. The hero and
        day-header cards always sit on a dark photo + dark scrim regardless of
        whether the app is in light or dark mode -- only the surrounding page
@@ -227,15 +239,6 @@
   .weight-label{width:100%; background:var(--bg-2); border:1.5px solid var(--gold-dim); border-radius:8px; color:var(--gold); font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; padding:7px 8px; display:flex; align-items:baseline; gap:4px;}
   .weight-label .unit{font-size:10px; font-weight:600; color:var(--muted);}
 
-  .week-overview{margin-top:26px; margin-bottom:10px;}
-  .week-overview h3{font-family:'Bungee',sans-serif; font-size:16px; letter-spacing:0.3px; color:var(--gold); margin-bottom:12px;}
-  .week-grid{display:grid; gap:7px;}
-  .week-cell{background:var(--card); border:1.5px solid var(--line); border-radius:10px; padding:9px 4px; text-align:center; position:relative;}
-  .week-cell.is-today{border-color:var(--gold);}
-  .week-cell .wd{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:700;}
-  .week-cell .wp{height:5px; border-radius:3px; background:rgba(255,255,255,0.08); margin-top:6px; overflow:hidden;}
-  .week-cell .wp-fill{height:100%; border-radius:3px;}
-
   .weight-card{background:var(--card); border:1.5px solid var(--gold-dim); border-radius:16px; padding:18px 18px 16px; margin-bottom:18px;}
   .recovery-card{background:var(--card); border:1.5px solid var(--line); border-radius:16px; padding:14px 16px; margin-bottom:18px;}
   .recovery-prompt{font-size:13px; font-weight:700; color:var(--ink); margin-bottom:10px;}
@@ -279,6 +282,7 @@
 
   .history-section{margin-top:26px; margin-bottom:10px;}
   .history-section h3{font-family:'Bungee',sans-serif; font-size:16px; letter-spacing:0.3px; color:var(--gold); margin-bottom:12px;}
+  .heatmap-sub{font-size:10.5px; color:var(--muted); margin:-8px 0 12px; font-family:'JetBrains Mono',monospace;}
   .history-list{display:flex; flex-direction:column; gap:9px;}
   .history-row{background:var(--card); border:1.5px solid var(--line); border-radius:10px; padding:10px 12px;}
   .history-row-top{display:flex; justify-content:space-between; align-items:center; font-size:12px;}
@@ -382,6 +386,8 @@
   .chat-heading{display:block; margin:10px 0 4px; text-decoration:underline; text-underline-offset:3px; color:var(--gold); font-weight:800;}
   .chat-bubble .chat-heading:first-child{margin-top:0;}
   .chat-bubble.user .chat-heading{color:var(--ink);}
+  .chat-bubble a{color:var(--gold); text-decoration:underline; text-underline-offset:2px; word-break:break-word;}
+  .chat-bubble.user a{color:var(--ink); text-decoration-color:var(--ink);}
   .chat-bubble.typing{display:flex; gap:4px; align-items:center; padding:14px;}
   .chat-bubble.typing span{width:6px; height:6px; border-radius:50%; background:var(--muted); animation:chatDot 1.2s infinite;}
   .chat-bubble.typing span:nth-child(2){animation-delay:0.2s;} .chat-bubble.typing span:nth-child(3){animation-delay:0.4s;}
@@ -422,6 +428,9 @@
     --pull:#0090AD; --pull-bg:#E6F7FB; --pull-line:#AEE0EC;
     --legs:#8B2FC9; --legs-bg:#F5E9FC; --legs-line:#D9B8EC;
     --good:#1FAE4B; --good-bg:#E4F7EA; --bad:#D6234F; --bad-bg:#FBE4EA;
+    --bad-text: #9A1530;
+    --heat-3: #E8C468; --heat-2: #F0D89A; --heat-1: #F5E7C9; --heat-0: #EDEAE0;
+    --bad-text-sub: #A8455C;
   }
   .ring-track{stroke:var(--line);}
   .ring-fill{stroke:var(--gold);}
@@ -433,14 +442,14 @@
   .account-card{background:var(--card); border:1.5px solid var(--gold-dim); border-radius:16px; padding:18px; margin-bottom:16px;}
   .acct-card{background:var(--card); border:1.5px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:12px;}
   .acct-card-title{font-family:'Bungee',sans-serif; font-size:12px; color:var(--gold); letter-spacing:0.3px; margin-bottom:10px;}
-  .action-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px;}
-  .action-btn{display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 8px; border-radius:14px; border:1.5px solid var(--line); background:var(--card); font-family:'Teko',sans-serif; font-size:12.5px; letter-spacing:0.3px; color:var(--ink); cursor:pointer;}
-  .action-btn .ico{font-size:18px;}
-  .danger-zone{margin-top:14px; border:1.5px dashed var(--bad); border-radius:14px; padding:12px;}
-  .danger-zone-label{font-size:10px; color:var(--bad); text-transform:uppercase; letter-spacing:0.5px; font-family:'JetBrains Mono',monospace; margin-bottom:8px;}
-  .danger-btn{width:100%; text-align:left; padding:10px 12px; border-radius:10px; border:1.5px solid var(--bad); background:rgba(214,35,79,0.1); color:#ffb3c0; font-size:12.5px; font-weight:600; margin-bottom:8px; cursor:pointer;}
+  .action-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px;}
+  .action-btn{display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px; padding:9px 8px; border-radius:11px; border:1.5px solid var(--line); background:var(--card); font-family:'Teko',sans-serif; font-size:12px; letter-spacing:0.3px; color:var(--ink); cursor:pointer;}
+  .action-btn .ico{font-size:13px;}
+  .danger-zone{margin-top:10px; border:1.5px dashed var(--bad); border-radius:12px; padding:9px;}
+  .danger-zone-label{font-size:9px; color:var(--bad); text-transform:uppercase; letter-spacing:0.5px; font-family:'JetBrains Mono',monospace; margin-bottom:6px;}
+  .danger-btn{width:100%; text-align:left; padding:7px 10px; border-radius:8px; border:1.5px solid var(--bad); background:rgba(214,35,79,0.1); color:var(--bad-text); font-size:11.5px; font-weight:600; margin-bottom:6px; cursor:pointer;}
   .danger-btn:last-child{margin-bottom:0;}
-  .danger-btn small{display:block; color:#c98a95; font-weight:400; font-size:10.5px; margin-top:2px;}
+  .danger-btn small{display:block; color:var(--bad-text-sub); font-weight:400; font-size:9.5px; margin-top:1px;}
   .account-row{display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px dashed var(--line); font-size:12.5px; color:var(--muted);}
   .account-row:last-child{border-bottom:none;}
   .account-row b{color:var(--ink); font-weight:800; text-align:right;}
@@ -736,6 +745,12 @@ function formatChatMessage(s){
   let safe = escapeHtml(s);
   safe = safe.replace(/^## (.+)$/gm, '<span class="chat-heading">$1</span>');
   safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Links (e.g. web search citations): the URL must start with http:// or
+  // https:// or this pattern simply doesn't match at all -- a scheme like
+  // javascript: just stays as plain, inert, escaped text instead of ever
+  // becoming a real anchor tag, whether it came from a search result or
+  // someone typing link-shaped text into the chat themselves.
+  safe = safe.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   safe = safe.replace(/\n/g, '<br>');
   return safe;
 }
@@ -1114,6 +1129,17 @@ let trackerState = {}, trackerHistory = [], weightLog = [];
 let streakWeeks = 0, streakFreezes = 2, lastFreezeRefillMonth = null;
 let recoveryLog = []; // [{date, level: 'fresh'|'okay'|'wiped'}] -- reflection only, does not change suggested weights (yet)
 let exerciseHistory = {}; // {[exerciseId]: [true, false, ...]} -- one entry per week, "was every occurrence of this exercise fully completed that week", oldest first
+// {'YYYY-MM-DD': count} -- how many individual sets got checked off on that
+// REAL calendar date, independent of which plan-day/week they belonged to.
+// This is what makes an actual day-by-day heatmap possible -- trackerHistory
+// only ever knew "4 of 6 workouts done last week," never which specific
+// dates anything happened on, since trackerState itself gets wiped clean on
+// every week rollover.
+let dayCompletionLog = {};
+function bumpDayActivity(){
+  const today = new Date().toISOString().slice(0,10);
+  dayCompletionLog[today] = (dayCompletionLog[today]||0) + 1;
+}
 let pendingStreakToast = null;
 let pendingProgressionToast = null;
 let pendingRecoveryToast = null;
@@ -1124,7 +1150,7 @@ let qIndex = 0, qAnswers = {};
 let chatMessages = [], chatPlanProposal = null, chatSending = false, chatError = null;
 // Separate state for the in-app coach -- a distinct, persisted conversation
 // from the onboarding chat above, not the same one continuing.
-let coachMessages = [], coachSending = false, coachError = null, coachPlanProposal = null, coachHistoryLoaded = false;
+let coachMessages = [], coachSending = false, coachError = null, coachPlanProposal = null, coachExercisesProposal = null, coachHistoryLoaded = false;
 let activeDay = 1;
 let pendingEmail = '';
 let saveStatus = 'idle', lastSavedAt = null;
@@ -1254,6 +1280,7 @@ async function loadProfileAndData(isRetry){
     lastFreezeRefillMonth = tracker.lastFreezeRefillMonth || null;
     recoveryLog = tracker.recoveryLog || [];
     exerciseHistory = tracker.exerciseHistory || {};
+    dayCompletionLog = tracker.dayCompletionLog || {};
     if(migrateTrackerState()) silentSave();
     activeDay = getUpNextDay();
     handleWeekRollover();
@@ -1285,7 +1312,7 @@ function saveUserData(){
     const {error} = await sb.from('user_data').upsert({
       id: currentUser.id,
       plan,
-      tracker: {state: trackerState, history: trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog, exerciseHistory},
+      tracker: {state: trackerState, history: trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog, exerciseHistory, dayCompletionLog},
       updated_at: new Date().toISOString(),
     });
     if(error) throw error;
@@ -1628,7 +1655,7 @@ function buildPlanFromChat(){
 /* ============================== IN-APP COACH (ongoing, signed-in, separate from onboarding) ============================== */
 async function openCoachChat(){
   APP_STATE = 'coach';
-  coachSending = false; coachError = null; coachPlanProposal = null;
+  coachSending = false; coachError = null; coachPlanProposal = null; coachExercisesProposal = null;
   render();
   if(!coachHistoryLoaded){
     await loadCoachHistory();
@@ -1686,6 +1713,17 @@ function renderCoach(){
           <div class="chat-ready-row"><span>Days per week</span><b>${coachPlanProposal.days !== undefined ? coachPlanProposal.days : profile.days_per_week}</b></div>
           <button id="applyCoachProposal">Update My Plan</button>
         </div>
+      ` : coachExercisesProposal ? `
+        <div class="chat-ready-card">
+          <h3>Add to ${escapeHtml((plan.days.find(d=>d.day===coachExercisesProposal.day)||{}).title || ('Day '+coachExercisesProposal.day))}?</h3>
+          ${coachExercisesProposal.exercises.map(ex => `
+            <div class="chat-ready-row" style="flex-direction:column; align-items:flex-start; gap:2px;">
+              <b>${escapeHtml(ex.name)}</b>
+              <span style="font-size:11.5px;">${ex.sets} sets × ${escapeHtml(ex.reps)}${ex.weight ? ` @ ${ex.weight} lbs` : ''} — ${escapeHtml(ex.targets)}</span>
+            </div>
+          `).join('')}
+          <button id="applyCoachExercises">Add to My Plan</button>
+        </div>
       ` : `
         <div class="chat-input-row">
           <input type="text" id="chatInput" placeholder="Ask your coach…" ${coachSending?'disabled':''}>
@@ -1700,6 +1738,8 @@ function renderCoach(){
   document.getElementById('coachCloseBtn').onclick = closeCoach;
   if(coachPlanProposal){
     document.getElementById('applyCoachProposal').onclick = applyCoachPlanProposal;
+  } else if(coachExercisesProposal){
+    document.getElementById('applyCoachExercises').onclick = applyCoachExercisesProposal;
   } else {
     const inp = document.getElementById('chatInput');
     const send = ()=>{ const v=inp.value.trim(); if(!v || coachSending) return; inp.value=''; sendCoachMessage(v); };
@@ -1737,6 +1777,10 @@ function coachContext(){
     timeframeWeeks: profile.timeframe_weeks, avoid: profile.avoid||[], sport: profile.sport || null,
     streakWeeks, lastWeekCompletion: lastWeek ? `${lastWeek.done}/${lastWeek.total} workouts` : 'no completed weeks yet',
     recentRecovery: recentRecoverySummary(),
+    // So the coach can correctly say "I'll add that to day 3" and actually
+    // mean the right day, rather than guessing a number with no idea what
+    // it corresponds to.
+    currentPlanDays: plan.days.map(d => ({day: d.day, title: d.title, split: d.split, exerciseCount: d.exercises.length})),
   };
 }
 
@@ -1757,6 +1801,7 @@ async function sendCoachMessage(text){
     coachMessages.push({role:'assistant', content:data.reply});
     saveCoachMessage('assistant', data.reply);
     if(data.planProposal) coachPlanProposal = data.planProposal;
+    if(data.exercisesProposal) coachExercisesProposal = data.exercisesProposal;
   }catch(e){
     coachError = "Couldn't reach your coach" + (e && e.message ? ` (${e.message})` : '') + '. You can try again.';
   }
@@ -1785,6 +1830,39 @@ function applyCoachPlanProposal(){
     sport: p.sport !== undefined ? p.sport : (profile.sport||''),
   };
   finalizeOnboarding();
+}
+
+// Same shape and same save/rollback pattern as the manual "Add Exercise"
+// form (handleSaveAddEx) -- this is genuinely the same action, just
+// initiated by the coach instead of someone filling out the form
+// themselves, so it reuses the exact mechanism rather than a second,
+// parallel way of adding exercises to a day.
+async function applyCoachExercisesProposal(){
+  const dayObj = plan.days.find(d => d.day === coachExercisesProposal.day);
+  if(!dayObj){
+    coachError = "Couldn't find that day in your plan anymore.";
+    coachExercisesProposal = null;
+    renderCoach();
+    return;
+  }
+  const newExercises = coachExercisesProposal.exercises.map((ex, i) => ({
+    id: 'coach_'+Date.now()+'_'+i,
+    name: ex.name, tag: MUSCLE_LABEL[ex.muscle] || 'Cardio', sets: ex.sets, reps: ex.reps,
+    weight: ex.weight ? String(ex.weight) : '—', unit: ex.weight ? 'lbs' : 'bodyweight',
+    muscles: ex.targets,
+  }));
+  dayObj.exercises.push(...newExercises);
+  coachExercisesProposal = null;
+  renderCoach();
+  const ok = await saveAll();
+  if(!ok){
+    // Wasn't actually saved -- don't leave the plan showing exercises that
+    // don't exist anywhere but this browser tab.
+    const addedIds = new Set(newExercises.map(e=>e.id));
+    dayObj.exercises = dayObj.exercises.filter(e=>!addedIds.has(e.id));
+    coachError = "Couldn't save those exercises to your plan -- try again.";
+  }
+  renderCoach();
 }
 
 async function finalizeOnboarding(){
@@ -1820,7 +1898,7 @@ async function finalizeOnboarding(){
     trackerState = {}; trackerHistory = [];
     weightLog = [{date: todayISO(), weight: qAnswers.currentWeight}];
     if(!isRetake){ streakWeeks = 0; streakFreezes = 2; lastFreezeRefillMonth = new Date().toISOString().slice(0,7); }
-    const {error: dataErr} = await sb.from('user_data').upsert({id: currentUser.id, plan, tracker:{state:trackerState, history:trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog:[], exerciseHistory:{}}, updated_at:new Date().toISOString()});
+    const {error: dataErr} = await sb.from('user_data').upsert({id: currentUser.id, plan, tracker:{state:trackerState, history:trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog:[], exerciseHistory:{}, dayCompletionLog}, updated_at:new Date().toISOString()});
     if(dataErr) throw dataErr;
     activeDay = 1;
     APP_STATE = 'dashboard';
@@ -2077,30 +2155,46 @@ function renderWeightTrendSvg(entries, goalWeight){
 // overall color pattern, not just from comparing individual bar heights.
 function weekBarColor(pct){
   if(pct >= 0.9) return 'var(--gold)';
-  if(pct >= 0.65) return '#c99b0c';
-  if(pct >= 0.35) return '#8a6c10';
-  if(pct > 0) return '#4a3b0e';
-  return '#2a2410';
+  if(pct >= 0.65) return 'var(--heat-3)';
+  if(pct >= 0.35) return 'var(--heat-2)';
+  if(pct > 0) return 'var(--heat-1)';
+  return 'var(--heat-0)';
 }
-function renderWeeklyBarChartSvg(weeks){
-  if(!weeks || weeks.length===0){
-    return `<div class="chart-empty">Your first full week will show up here once it wraps.</div>`;
+// Real calendar heatmap -- 13 weeks x 7 days, oldest at top-left, today at
+// bottom-right, matching the conventional GitHub-style layout. Unlike the
+// weight/weekly-bar charts, this always renders the full grid even with no
+// data at all: blank cells are themselves meaningful information ("nothing
+// done these days"), not a broken or empty state to hide behind a message.
+function renderHeatmapSvg(log){
+  const totalDays = 91;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cells = [];
+  for(let i=totalDays-1; i>=0; i--){
+    const d = new Date(today); d.setDate(d.getDate()-i);
+    const dateStr = d.toISOString().slice(0,10);
+    cells.push({date: dateStr, count: log[dateStr]||0, dow: d.getDay()});
   }
-  const n = weeks.length;
-  const W = 320, H = 110, gap = 8;
-  const barW = (W - gap*(n-1)) / n;
-  const bars = weeks.map((w,i)=>{
-    const pct = w.total ? (w.done/w.total) : 0;
-    const barH = Math.max(6, pct * (H-20));
-    const x = i * (barW+gap);
-    const y = H - barH;
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="6" fill="${weekBarColor(pct)}"/>`;
+  // Pad the front so the grid starts on a Sunday -- keeps columns as clean,
+  // aligned weeks instead of a ragged first column.
+  const lead = cells[0].dow;
+  for(let i=0;i<lead;i++) cells.unshift({date:null, count:0, dow:i});
+
+  const size = 11, gap = 3, cell = size+gap;
+  const cols = Math.ceil(cells.length/7);
+  const W = cols*cell, H = 7*cell;
+  const rects = cells.map((c,idx)=>{
+    if(c.date===null) return '';
+    const col = Math.floor(idx/7), row = idx%7;
+    const x = (col*cell).toFixed(1), y = (row*cell).toFixed(1);
+    // 15+ sets in a day reads as "fully lit" -- a reasonable typical upper
+    // bound for one real workout day's total set count, not a precise
+    // calibration, since relative intensity across days is what actually
+    // matters here, not the exact threshold.
+    const pct = Math.min(1, c.count/15);
+    const label = c.count>0 ? `${c.count} set${c.count===1?'':'s'}` : 'Rest day';
+    return `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="2.5" fill="${weekBarColor(pct)}"><title>${c.date} -- ${label}</title></rect>`;
   }).join('');
-  const labels = weeks.map((w,i)=>{
-    const x = i*(barW+gap) + barW/2;
-    return `<text x="${x.toFixed(1)}" y="${H+14}" text-anchor="middle" font-size="9" fill="var(--muted)" font-family="JetBrains Mono, monospace">W${i+1}</text>`;
-  }).join('');
-  return `<svg viewBox="0 0 ${W} ${H+20}" style="width:100%;">${bars}${labels}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%; max-width:${W}px; height:auto;">${rects}</svg>`;
 }
 function currentWeight(){ return weightLog.length ? weightLog[weightLog.length-1].weight : profile.current_weight; }
 
@@ -2166,6 +2260,7 @@ function toggleSet(day, exId, idx, total){
     trackerState[key].setsChecked = new Array(total).fill(false);
   }
   trackerState[key].setsChecked[idx] = !trackerState[key].setsChecked[idx];
+  if(trackerState[key].setsChecked[idx]) bumpDayActivity(); // only real, new effort counts -- unchecking a mistake shouldn't
   const nowDayComplete = dayProgress(day).pct === 1;
   const nowWeekComplete = plan.days.every(d => dayProgress(d.day).pct === 1);
   renderDashboard();
@@ -2204,6 +2299,7 @@ function toggleAllSets(day, exId, total){
   const current = trackerState[key].setsChecked;
   const currentlyAllDone = Array.isArray(current) && current.length===total && current.every(Boolean);
   trackerState[key].setsChecked = new Array(total).fill(!currentlyAllDone);
+  if(!currentlyAllDone) for(let i=0;i<total;i++) bumpDayActivity(); // checking all -- counts as real effort per set, same as checking them one at a time would
   const nowDayComplete = dayProgress(day).pct === 1;
   const nowWeekComplete = plan.days.every(d => dayProgress(d.day).pct === 1);
   renderDashboard();
@@ -2525,11 +2621,6 @@ function renderDashboard(){
     </div>
     <div id="dayContent"></div>
 
-    <div class="week-overview">
-      <h3>WEEKLY GRIND</h3>
-      <div class="week-grid" id="weekGrid" style="grid-template-columns:repeat(${N},1fr);"></div>
-    </div>
-
     <button class="reset-btn" id="resetBtn">Reset This Week</button>
   `;
 
@@ -2716,16 +2807,6 @@ function renderDashboard(){
   if(cancelAddBtn) cancelAddBtn.onclick = ()=>{ addFormOpen = false; hideError(); renderDashboard(); };
   const saveAddBtn = document.getElementById('saveAddEx');
   if(saveAddBtn) saveAddBtn.onclick = handleSaveAddEx;
-
-  // week grid
-  const weekGrid = document.getElementById('weekGrid');
-  plan.days.forEach(dd=>{
-    const {pct:wp} = dayProgress(dd.day);
-    const cell = document.createElement('div');
-    cell.className = 'week-cell' + (dd.day===upNext?' is-today':'');
-    cell.innerHTML = `<div class="wd">D${dd.day}</div><div class="wp"><div class="wp-fill" style="width:${wp*100}%; background:var(--${dd.split})"></div></div>`;
-    weekGrid.appendChild(cell);
-  });
 
   if(hasPrev) document.getElementById('prevDayBtn').onclick = ()=> goToDay(plan.days[dayIdx-1].day);
   if(hasNext) document.getElementById('nextDayBtn').onclick = ()=> goToDay(plan.days[dayIdx+1].day);
@@ -2937,8 +3018,9 @@ function renderAccount(){
     </div>
 
     <div class="history-section" style="margin-top:0;">
-      <h3>WEEKLY HISTORY</h3>
-      ${renderWeeklyBarChartSvg(recentHistory.slice().reverse())}
+      <h3>WEEKLY GRIND</h3>
+      <div class="heatmap-sub">Last 13 weeks · darker = lighter day, gold = fully crushed</div>
+      ${renderHeatmapSvg(dayCompletionLog)}
     </div>
 
     <div class="action-grid">
