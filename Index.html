@@ -1882,7 +1882,7 @@ function renderCoach(){
       <div class="sensei-hero"><div class="sensei-copy"><h2>YOUR SENSEI</h2><p>${personaFemale?'Strength · confidence · consistency':'Discipline · strength · progress'}</p></div></div>
       ${coachMessages.length===0 && !coachPlanProposal && !coachExercisesProposal ? `<div class="sensei-quick"><button data-sensei-prompt="${sportPrompt}">${sportPrompt}</button><button data-sensei-prompt="Adjust my workout plan">Adjust my plan</button><button data-sensei-prompt="I feel tired this week. How should I train?">Recovery advice</button><button data-sensei-prompt="Give me meal ideas that fit my goals">Meal ideas</button></div>` : ''}
       <div class="chat-log" id="chatLog">
-        ${coachMessages.length===0 ? `<div class="chat-bubble assistant">${personaFemale?'Welcome back.':'You showed up.'} Ask me about training, nutrition, recovery, ${profile&&profile.sport?escapeHtml(profile.sport)+', ':''}or your progress. If you want your plan changed, tell me what needs to change and I can propose it.</div>` : ''}
+        ${coachMessages.length===0 ? `<div class="chat-bubble assistant">${personaFemale?'Welcome back.':'You showed up.'} Ask me anything about training, nutrition, recovery, ${profile&&profile.sport?escapeHtml(profile.sport)+', ':''}or your progress. If you want your plan changed, tell me what needs to change and I can propose it.</div>` : ''}
         ${coachMessages.map(m=>`<div class="chat-bubble ${m.role==='user'?'user':'assistant'}">${formatChatMessage(m.content)}</div>`).join('')}
         ${coachSending ? `<div class="chat-bubble assistant typing"><span></span><span></span><span></span></div>` : ''}
         ${coachError ? `<div class="chat-error">${escapeHtml(coachError)}</div>` : ''}
