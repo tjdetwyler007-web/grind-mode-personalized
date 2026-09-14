@@ -1641,7 +1641,8 @@ async function sendChatMessage(text){
   renderChatIntake();
 }
 
-function buildPlanFromChat(){
+async function buildPlanFromChat(){
+  const drills = chatPlanProposal.pendingDrills;
   qAnswers = {
     goals: chatPlanProposal.goals||[], experience: chatPlanProposal.experience, sex: chatPlanProposal.sex,
     days: chatPlanProposal.days, equipment: chatPlanProposal.equipment, activity: chatPlanProposal.activity,
@@ -1649,7 +1650,25 @@ function buildPlanFromChat(){
     timeframeWeeks: chatPlanProposal.timeframeWeeks, avoid: chatPlanProposal.avoid||[],
     sport: chatPlanProposal.sport || '',
   };
-  finalizeOnboarding();
+  await finalizeOnboarding();
+  // finalizeOnboarding sets `plan` only once the build+save actually
+  // succeeds -- if it failed, plan stays whatever it was before (null for
+  // a brand-new signup), which is exactly what tells us not to touch
+  // exercises on a plan that was never actually created.
+  if(plan && drills && drills.length > 0){
+    drills.forEach(d => {
+      const dayObj = plan.days[d.dayIndex - 1];
+      if(!dayObj) return; // an out-of-range index just gets skipped, not crashed on
+      dayObj.exercises.push({
+        id: 'coach_'+Date.now()+'_'+Math.random().toString(36).slice(2),
+        name: d.name, tag: MUSCLE_LABEL[d.muscle] || 'Cardio', sets: d.sets, reps: d.reps,
+        weight: d.weight ? String(d.weight) : '—', unit: d.weight ? 'lbs' : 'bodyweight',
+        muscles: d.targets,
+      });
+    });
+    renderDashboard();
+    await saveAll(); // a second save -- finalizeOnboarding's own save already ran before these existed
+  }
 }
 
 /* ============================== IN-APP COACH (ongoing, signed-in, separate from onboarding) ============================== */
