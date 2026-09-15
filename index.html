@@ -737,6 +737,32 @@
 .manga-level-card:after{content:"";position:absolute;right:0;bottom:-12px;width:110px;height:125px;background:var(--manga-hero) center 18%/cover no-repeat;opacity:.72;pointer-events:none;mask-image:linear-gradient(to left,#000 70%,transparent)}
 
 </style>
+
+<style id="gm-mockup-match">
+/* GRIND MODE — mockup-matched responsive shell */
+:root{--gm-bg:#05080a;--gm-panel:#0b1014;--gm-line:#263039;--gm-gold:#ffc326;--gm-text:#f5f6f7;--gm-muted:#98a1aa}
+body{background:radial-gradient(circle at 70% -10%,rgba(255,195,38,.08),transparent 35%),#05080a!important}
+.gm-desktop-shell{min-height:100vh}.gm-sidebar{display:none}.gm-main{min-width:0}
+@media(min-width:900px){
+ body{overflow-x:hidden}.gm-desktop-shell{display:grid;grid-template-columns:178px minmax(0,1fr);max-width:1440px;margin:auto;background:#05080a;box-shadow:0 0 80px #000}
+ .gm-sidebar{display:flex;position:sticky;top:0;height:100vh;flex-direction:column;padding:24px 14px 18px;border-right:1px solid #263039;background:linear-gradient(180deg,#05080a,#080b0e 65%,#05080a);z-index:50;overflow:hidden}
+ .gm-brand{font-family:Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-style:italic;font-size:38px;line-height:.82;color:var(--gold);letter-spacing:-1px;text-shadow:2px 2px #000}.gm-brand-sub{font-size:11px;letter-spacing:2.2px;font-weight:900;margin:12px 0 22px;color:#fff}
+ .gm-side-btn{appearance:none;border:0;background:transparent;color:#c8cdd2;padding:11px 12px;border-radius:7px;text-align:left;font:700 13px system-ui;display:flex;gap:11px;align-items:center;cursor:pointer}.gm-side-btn:hover,.gm-side-btn.active{background:var(--gold);color:#090b0d}.gm-side-btn span{width:18px;text-align:center;font-size:16px}.gm-side-spacer{flex:1}
+ .gm-side-art{height:230px;margin:10px -14px 15px;background-image:linear-gradient(180deg,transparent,#05080a 92%),var(--manga-hero);background-size:cover;background-position:center top;filter:saturate(.9);position:relative}.gm-side-art:after{content:'継続は力';position:absolute;left:18px;bottom:18px;color:var(--gold);font-size:28px;font-weight:900;writing-mode:vertical-rl;letter-spacing:5px;text-shadow:0 2px 8px #000}
+ .gm-logout{border:1px solid #6e7880;background:transparent;color:#fff;border-radius:7px;padding:10px;font-weight:800;cursor:pointer}
+ .gm-main{padding:0 16px 30px;max-width:none!important}.app-topbar{height:64px!important;margin:0!important;padding:0 6px!important;border-bottom:1px solid #222b31!important;display:flex!important;align-items:center!important;background:#05080a!important;position:sticky!important;top:0!important;z-index:30!important}
+ .app-topbar:before{content:'GOOD MORNING. DISCIPLINE TODAY. A STRONGER TOMORROW.';font-weight:900;letter-spacing:1px;color:#fff;font-size:13px;margin-right:auto}.hero-nav-group{margin-left:auto}.hero-header{min-height:275px!important;border:1px solid #283139!important;border-radius:8px!important;margin:10px 0!important;overflow:hidden!important;background:#080d10!important}.hero-header>.hero-header-bg{background-size:42% auto!important;background-position:68% 25%!important;opacity:1!important}.hero-main{padding:28px!important;min-height:275px!important;align-items:flex-end!important;background:linear-gradient(90deg,rgba(3,6,8,.98) 0%,rgba(3,6,8,.78) 45%,rgba(3,6,8,.05) 74%,rgba(3,6,8,.7) 100%)!important}.hero-logo{font-size:58px!important;line-height:.86!important;font-style:italic!important;transform:rotate(-3deg);text-shadow:3px 3px #000}.hero-badge{font-size:12px!important}.hero-ring-wrap{align-self:flex-start;margin-top:12px}
+ .bottom-tabs{display:none!important}.coach-fab{right:26px!important;bottom:26px!important}.manga-level-card,.manga-arc-card,.sport-quest-card,.plan-stat-card,.recovery-card,.weight-card,.diet-card,.ex-card,.day-header{border-radius:7px!important;border-color:#29333a!important;background:#0b1014!important;box-shadow:none!important}
+ .manga-level-card{margin-top:10px!important}.plan-stats-grid{grid-template-columns:repeat(4,1fr)!important;gap:8px!important}.diet-macros{grid-template-columns:repeat(4,1fr)!important}.weight-card,.diet-card,.recovery-card{padding:16px!important}
+ #appRoot>.loading{margin-left:178px}
+}
+@media(min-width:1180px){
+ .gm-main{display:block}.gm-main .plan-stats-grid{grid-template-columns:repeat(4,1fr)!important}
+ .gm-main .manga-level-card{width:32%;float:right;margin-left:10px}.gm-main .manga-arc-card{width:calc(68% - 10px);min-height:210px}.gm-main .sport-quest-card{clear:both}
+ .gm-main .weight-card,.gm-main .diet-card{display:inline-block;vertical-align:top;width:calc(50% - 6px);margin-right:8px}.gm-main .diet-card{margin-right:0}
+}
+@media(max-width:899px){.gm-main{width:100%}.gm-sidebar{display:none!important}}
+</style>
 </head>
 <body>
 <div class="page-bg"></div>
@@ -2865,6 +2891,18 @@ function renderDashboard(){
   const currentPageHtml = dashboardPage==='overview' ? overviewHtml : dashboardPage==='workout' ? workoutHtml : dashboardPage==='sports' ? sportsHtml : dashboardPage==='arc' ? arcHtml : dashboardPage==='progress' ? progressHtml : overviewHtml;
 
   root().innerHTML = `
+    <div class="gm-desktop-shell">
+    <aside class="gm-sidebar">
+      <div class="gm-brand">GRIND<br>MODE</div><div class="gm-brand-sub">DISCIPLINE BUILDS FREEDOM.</div>
+      <button class="gm-side-btn ${dashboardPage==='overview'?'active':''}" data-side-page="overview"><span>⌂</span>Home</button>
+      <button class="gm-side-btn ${dashboardPage==='workout'?'active':''}" data-side-page="workout"><span>◫</span>Workouts</button>
+      <button class="gm-side-btn ${dashboardPage==='sports'?'active':''}" data-side-page="sports"><span>◎</span>Sports</button>
+      <button class="gm-side-btn ${dashboardPage==='arc'?'active':''}" data-side-page="arc"><span>◇</span>Training Arc</button>
+      <button class="gm-side-btn ${dashboardPage==='progress'?'active':''}" data-side-page="progress"><span>▥</span>Progress</button>
+      <button class="gm-side-btn" data-side-page="sensei"><span>✦</span>Sensei</button>
+      <div class="gm-side-spacer"></div><div class="gm-side-art"></div>
+      <button class="gm-logout" id="gmSideLogout">↪ &nbsp; Log Out</button>
+    </aside><main class="gm-main">
     <div class="app-topbar">
       <div class="hero-nav-group">
         <button class="icon-btn" id="accountLink" title="Account">
@@ -2917,8 +2955,11 @@ function renderDashboard(){
       <button class="bottom-tab ${dashboardPage==='progress'?'active':''}" data-page="progress"><span class="bt-icon">▥</span>PROGRESS</button>
       <button class="bottom-tab" data-page="sensei"><span class="bt-icon">✦</span>SENSEI</button>
     </div>
+    </main></div>
   `;
 
+  document.querySelectorAll('[data-side-page]').forEach(btn=>{ btn.onclick=()=>{ const pg=btn.dataset.sidePage; if(pg==='sensei'){ openCoachChat(); return; } dashboardPage=pg; renderDashboard(); }; });
+  const gmSideLogout=document.getElementById('gmSideLogout'); if(gmSideLogout) gmSideLogout.onclick=()=>document.getElementById('signOutLink')?.click();
 
   if(dashboardPage==='workout'){
     // day tabs
