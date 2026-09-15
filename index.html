@@ -620,6 +620,15 @@
   }
   .page-bg{display:none;}
   .wrap{max-width:720px;}
+  /* The desktop sidebar grid (.gm-desktop-shell, added later) was never
+     given room to actually use desktop width -- .wrap's mobile/tablet
+     reading-width cap was still capping the whole shell (sidebar + main)
+     to 720px total, leaving the main content column barely wider than on
+     mobile and squeezing every side-by-side text+art card into one or two
+     words per line. Matches the same 900px breakpoint already used
+     throughout the rest of this desktop layout, and the same 1180px the
+     shell's own grid columns were already sized against. */
+  @media(min-width:900px){ .wrap{max-width:1180px;} }
   .landing-hero-photo{min-height:150px;background:linear-gradient(155deg,#050506,#121216 72%);border:1px solid var(--gold-dim);}
   .landing-hero-bg{display:none;}
   .landing-hero-scrim{background:repeating-linear-gradient(135deg,transparent 0 13px,rgba(255,255,255,.025) 13px 14px);}
