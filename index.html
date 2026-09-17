@@ -483,6 +483,18 @@
   .account-card{background:var(--card); border:1.5px solid var(--gold-dim); border-radius:16px; padding:18px; margin-bottom:16px;}
   .acct-card{background:var(--card); border:1.5px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:12px;}
   .acct-card-title{font-family:'Bungee',sans-serif; font-size:12px; color:var(--gold); letter-spacing:0.3px; margin-bottom:10px;}
+  .recovery-checklist-sub{font-size:11.5px; color:var(--muted); line-height:1.5; margin-bottom:10px;}
+  .recovery-checklist-list{display:flex; flex-direction:column; gap:8px;}
+  .recovery-checklist-row{display:flex; align-items:flex-start; gap:10px; padding:9px 10px; background:var(--bg-2); border:1.5px solid var(--line); border-radius:9px; cursor:pointer; transition:border-color .15s ease;}
+  .recovery-checklist-row.checked{border-color:var(--good);}
+  .recovery-checklist-check{width:20px; height:20px; border-radius:6px; border:1.5px solid var(--line); flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; background:var(--card);}
+  .recovery-checklist-row.checked .recovery-checklist-check{background:var(--good); border-color:var(--good);}
+  .recovery-checklist-check svg{width:11px; height:11px;}
+  .recovery-checklist-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+  .recovery-checklist-text b{font-size:12.5px; color:var(--ink);}
+  .recovery-checklist-row.checked .recovery-checklist-text b{text-decoration:line-through; color:var(--muted);}
+  .recovery-checklist-text span{font-size:10.5px; color:var(--muted);}
+  .recovery-checklist-source{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; flex-shrink:0; background:var(--bg); border:1px solid var(--line); border-radius:5px; padding:2px 6px; margin-top:1px;}
   .action-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px;}
   .action-btn{display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px; padding:9px 8px; border-radius:11px; border:1.5px solid var(--line); background:var(--card); font-family:'Teko',sans-serif; font-size:12px; letter-spacing:0.3px; color:var(--ink); cursor:pointer;}
   .action-btn .ico{font-size:13px;}
@@ -1236,8 +1248,27 @@ function renderSportsPage(m){
 function renderProgressPage(m, cw, startWeight, goalWeight){
   return `<div class="manga-page-title">Progress</div>${mangaLevelCardHtml(m)}<div class="weight-card"><div class="weight-head"><div><div class="weight-label-sm">Current Weight</div><div class="weight-current">${cw}<span class="weight-unit">lbs</span></div></div><div class="weight-goal-chip">Goal ${goalWeight} lbs</div></div>${renderWeightTrendSvg(weightLog, goalWeight)}</div><div class="arc-card"><div class="arc-kicker">Body Evolution</div><div class="arc-title">Visual Leveling</div><div class="body-evolution">${['Month 1','Month 3','Month 6','Month 12'].map((x,i)=>`<div class="evo-stage ${m.level >= [1,4,8,14][i]?'active':''}"><div class="evo-figure"></div><span>${x}</span></div>`).join('')}</div></div>`;
 }
+function recoveryChecklistHtml(){
+  const items = buildRecoveryChecklist();
+  if(items.length===0){
+    return `<div class="account-card"><div class="acct-card-title">Recovery Checklist</div><p class="recovery-checklist-sub">Add exercises to your plan (or a sport in your profile) and stretch suggestions will show up here.</p></div>`;
+  }
+  const doneCount = items.filter(it=>recoveryChecklistChecked[it.name]).length;
+  return `<div class="account-card">
+    <div class="acct-card-title">Recovery Checklist</div>
+    <p class="recovery-checklist-sub">Based on what you're training this week${profile.sport ? ' and ' + escapeHtml(profile.sport) : ''} · ${doneCount}/${items.length} done</p>
+    <div class="recovery-checklist-list">
+      ${items.map(item => `
+        <div class="recovery-checklist-row ${recoveryChecklistChecked[item.name]?'checked':''}" data-recovery-item="${escapeAttr(item.name)}">
+          <div class="recovery-checklist-check">${recoveryChecklistChecked[item.name] ? `<svg viewBox="0 0 24 24" fill="none" stroke="#0A0A0C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>` : ''}</div>
+          <div class="recovery-checklist-text"><b>${escapeHtml(item.name)}</b><span>${escapeHtml(item.detail)}</span></div>
+          <span class="recovery-checklist-source">${escapeHtml(item.source)}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
 function renderMorePage(m, macros){
-  return `<div class="manga-page-title">More</div><div class="account-card"><div class="acct-card-title">Recovery</div><div class="account-row"><span>Today</span><b>${todayRecoveryLevel()||'Not logged'}</b></div><div class="account-row"><span>Streak</span><b>${streakWeeks} weeks</b></div><div class="account-row"><span>Character rank</span><b>${m.rank}</b></div><button class="btn-secondary" id="moreAccountBtn" style="margin-top:12px;">Profile & Settings</button></div>`;
+  return `<div class="manga-page-title">More</div><div class="account-card"><div class="acct-card-title">Recovery</div><div class="account-row"><span>Today</span><b>${todayRecoveryLevel()||'Not logged'}</b></div><div class="account-row"><span>Streak</span><b>${streakWeeks} weeks</b></div><div class="account-row"><span>Character rank</span><b>${m.rank}</b></div><button class="btn-secondary" id="moreAccountBtn" style="margin-top:12px;">Profile & Settings</button></div>${recoveryChecklistHtml()}`;
 }
 
 /* Capture the URL hash BEFORE supabase-js parses/clears it, so we can tell
@@ -1482,6 +1513,84 @@ const GENERIC_MUSCLE_DESC = {
 function describeMuscle(muscle){
   return GENERIC_MUSCLE_DESC[muscle] || 'Works the muscles engaged by this movement — track good form and progressive load over time.';
 }
+
+/* ============================== RECOVERY CHECKLIST ==============================
+   A simple, non-AI checklist of stretches/mobility drills, built from two
+   signals: which muscle groups actually show up in the person's current
+   plan (across the whole week, since the More page isn't tied to one day),
+   and the sport they set in onboarding, if any. Deliberately just a static
+   lookup table, not a coaching feature -- Sensei already covers open-ended
+   recovery advice in chat for anyone who wants that instead. */
+const MUSCLE_RECOVERY = {
+  chest: [{name:'Doorway chest stretch', detail:'30s per side, arm at shoulder height.'}],
+  back: [{name:'Cat-cow stretch', detail:'8-10 slow reps.'}, {name:'Child\'s pose', detail:'Hold 30-45s.'}],
+  shoulders: [{name:'Cross-body shoulder stretch', detail:'30s per side.'}],
+  biceps: [{name:'Overhead triceps/biceps stretch', detail:'20-30s per side.'}],
+  triceps: [{name:'Overhead triceps stretch', detail:'20-30s per side.'}],
+  quads: [{name:'Standing quad stretch', detail:'30s per side.'}],
+  hamstrings: [{name:'Standing or seated hamstring stretch', detail:'30s per side.'}],
+  glutes: [{name:'Figure-4 glute stretch', detail:'30s per side.'}],
+  calves: [{name:'Wall calf stretch', detail:'30s per side.'}],
+  abs: [{name:'Cobra stretch', detail:'Hold 20-30s.'}],
+  obliques: [{name:'Standing side bend', detail:'20-30s per side.'}],
+  forearms: [{name:'Wrist flexor/extensor stretch', detail:'20s per side, each direction.'}],
+  traps: [{name:'Neck side stretch', detail:'20s per side.'}],
+  abductors: [{name:'Seated butterfly stretch', detail:'Hold 30-45s.'}],
+};
+// Matched case-insensitively against whatever free-text sport the person
+// typed in onboarding -- keyword-based on purpose, since it's a plain text
+// field, not a fixed list. Falls back to a generic warm-down when the sport
+// doesn't match a known keyword, so someone always sees something relevant
+// once a sport is set, not an empty section.
+const SPORT_RECOVERY = [
+  {keywords:['basketball'], drills:[{name:'Ankle circles + calf raises', detail:'2x15 each side, for landing/cutting resilience.'}, {name:'Standing quad stretch', detail:'30s per side.'}]},
+  {keywords:['soccer','football'], drills:[{name:'Hip flexor lunge stretch', detail:'30s per side.'}, {name:'Standing hamstring stretch', detail:'30s per side.'}]},
+  {keywords:['tennis','badminton','squash','pickleball'], drills:[{name:'Wrist + forearm stretch', detail:'20s per side, each direction.'}, {name:'Cross-body shoulder stretch', detail:'30s per side.'}]},
+  {keywords:['running','run','jog','marathon','track'], drills:[{name:'Standing calf stretch', detail:'30s per side.'}, {name:'IT band / standing figure-4 stretch', detail:'30s per side.'}]},
+  {keywords:['swim'], drills:[{name:'Cross-body shoulder stretch', detail:'30s per side.'}, {name:'Doorway chest stretch', detail:'30s per side.'}]},
+  {keywords:['cycling','cycle','bike'], drills:[{name:'Hip flexor lunge stretch', detail:'30s per side.'}, {name:'Standing quad stretch', detail:'30s per side.'}]},
+  {keywords:['volleyball'], drills:[{name:'Ankle circles + calf raises', detail:'2x15 each side.'}, {name:'Cross-body shoulder stretch', detail:'30s per side.'}]},
+  {keywords:['baseball','softball'], drills:[{name:'Cross-body shoulder stretch', detail:'30s per side.'}, {name:'Standing side bend', detail:'20-30s per side.'}]},
+  {keywords:['golf'], drills:[{name:'Standing torso rotation stretch', detail:'20-30s per side.'}, {name:'Cross-body shoulder stretch', detail:'30s per side.'}]},
+];
+const GENERIC_SPORT_RECOVERY = [{name:'5-10 min easy walk or bike', detail:'Brings heart rate down gradually.'}, {name:'Full-body stretch circuit', detail:'30s each: chest, hamstrings, quads, shoulders.'}];
+
+// Every muscle group that shows up anywhere in the current week's plan --
+// the More page has no single "today," so this reflects the whole plan
+// rather than picking one arbitrary day.
+function trainedMusclesThisWeek(){
+  const muscles = new Set();
+  plan.days.forEach(d=> d.exercises.forEach(ex=>{
+    const key = muscleKeyFromTag(ex.tag);
+    if(key && key!=='cardio') muscles.add(key);
+  }));
+  return [...muscles];
+}
+function buildRecoveryChecklist(){
+  const items = [];
+  const seen = new Set();
+  const addItem = (name, detail, source) => {
+    if(seen.has(name)) return;
+    seen.add(name);
+    items.push({name, detail, source});
+  };
+  trainedMusclesThisWeek().forEach(muscle=>{
+    (MUSCLE_RECOVERY[muscle]||[]).forEach(item => addItem(item.name, item.detail, MUSCLE_LABEL[muscle]));
+  });
+  const sport = (profile.sport||'').trim();
+  if(sport){
+    const lower = sport.toLowerCase();
+    const match = SPORT_RECOVERY.find(s => s.keywords.some(k => lower.includes(k)));
+    const drills = match ? match.drills : GENERIC_SPORT_RECOVERY;
+    drills.forEach(item => addItem(item.name, item.detail, sport));
+  }
+  return items;
+}
+// Session-only, deliberately not saved to the backend -- this is a soft
+// daily nudge, not part of the tracked training record the way sets/reps
+// and weight logs are, so it resets on reload rather than needing its own
+// persistence and week-rollover logic.
+let recoveryChecklistChecked = {};
 
 const CARDIO_DURATION = {
   fat_loss: {steady:'25-30 min', intervals:'15-20 min'},
@@ -3734,6 +3843,13 @@ function renderDashboard(){
   if(sportSenseiBtn) sportSenseiBtn.onclick = openCoachChat;
   const moreAccountBtn = document.getElementById('moreAccountBtn');
   if(moreAccountBtn) moreAccountBtn.onclick = ()=>{ APP_STATE='account'; render(); };
+  document.querySelectorAll('[data-recovery-item]').forEach(el=>{
+    el.onclick = ()=>{
+      const key = el.dataset.recoveryItem;
+      recoveryChecklistChecked[key] = !recoveryChecklistChecked[key];
+      renderDashboard();
+    };
+  });
   document.querySelectorAll('.bottom-tab').forEach(btn=>{
     btn.onclick = ()=> btn.dataset.page==='sensei' ? openCoachChat() : setDashboardPage(btn.dataset.page);
   });
