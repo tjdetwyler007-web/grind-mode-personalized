@@ -1258,10 +1258,20 @@ function sportQuestHtml(){
 function renderTrainingArcPage(m){
   return `<div class="manga-page-title">Training Arc</div><div class="stats-strip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg><span>Every completed exercise, logged weight, and week you keep your streak alive earns XP. Level up enough and you unlock the next chapter below. Boss Battles are milestone workouts — full-clear one to earn bonus XP and push the arc forward.</span></div><div class="chapter-list">${MANGA_CHAPTERS.map((c,i)=>`<div class="chapter-row ${i===m.chapterIndex?'active':''}"><div class="chapter-num">${String(i+1).padStart(2,'0')}</div><div><b>${c.name}</b><br><span>${c.quote}</span></div><div class="chapter-state">${i<m.chapterIndex?'CLEARED':i===m.chapterIndex?'ACTIVE':'LOCKED'}</div></div>`).join('')}</div><div class="boss-card"><div class="arc-kicker" style="color:#ff899d">Boss Battle</div><h3>${m.level<8?'THE IRON WALL':m.level<14?'THE GRIND':'THE FINAL REP'}</h3><p>Boss Battles are milestone workouts: complete every prescribed set on your next full-clear day to earn bonus XP and advance the arc.</p></div>`;
 }
+function addSportFormHtml(defaultVal){
+  return `<div class="add-ex-row" id="addSportForm">
+    <label>Sport</label>
+    <input type="text" id="addSportInput" value="${escapeAttr(defaultVal||'')}" placeholder="e.g. basketball, soccer, tennis…" maxlength="40">
+    <div class="q-nav" style="margin-top:14px;">
+      <button id="cancelAddSport">Cancel</button>
+      <button class="primary" id="saveAddSport">${defaultVal ? 'Update Sport' : 'Add Sport'}</button>
+    </div>
+  </div>`;
+}
 function renderSportsPage(m){
   const sport = (profile && profile.sport) ? profile.sport : '';
-  if(!sport) return `<div class="manga-page-title">Sports</div><div class="sport-quest"><h3>ADD YOUR SPORT</h3><p>Add basketball, soccer, tennis, running, or another sport by editing your plan. Sensei will use it when suggesting drills, conditioning, and recovery.</p><button id="sportsEditPlanBtn">Add a sport</button></div>`;
-  return `<div class="manga-page-title">Sports</div><div class="sport-quest sports-feature"><h3>${escapeHtml(sport)}</h3><p>Strength work, recovery, and your recent completion history stay connected to your sport goal so Sensei can recommend drills without replacing your main program.</p><button id="sportSenseiBtn">Ask Sensei for ${escapeHtml(sport)} drills</button></div><div class="arc-card"><div class="arc-kicker">Sport Quest</div><div class="arc-title">Skill + Strength</div><div class="arc-quote">“Different game. Same discipline.”</div><p class="arc-desc">Your lifting program builds the raw strength, stability, and durability that carry over onto the field or court, while ${escapeHtml(sport)} itself sharpens the reaction speed, footwork, and game sense a barbell alone can't teach. Neither one replaces the other — together they compound.</p><div class="plan-stats-grid" style="margin-top:12px;margin-bottom:0"><div class="plan-stat-card"><div class="plan-stat-text"><span class="plan-stat-label">Training streak</span><span class="plan-stat-value">${streakWeeks} weeks</span></div></div><div class="plan-stat-card"><div class="plan-stat-text"><span class="plan-stat-label">Workouts cleared</span><span class="plan-stat-value">${m.completed}</span></div></div></div></div>`;
+  if(!sport) return `<div class="manga-page-title">Sports</div><div class="sport-quest"><h3>ADD YOUR SPORT</h3><p>Add basketball, soccer, tennis, running, or another sport. It becomes part of your plan right away — conditioning work adjusts for it, and Sensei uses it for drills and recovery — without touching the rest of your program or your streak.</p>${addSportFormOpen ? addSportFormHtml('') : `<button id="openAddSportBtn">Add a sport</button>`}</div>`;
+  return `<div class="manga-page-title">Sports</div><div class="sport-quest sports-feature"><h3>${escapeHtml(sport)}</h3><p>Strength work, recovery, and your recent completion history stay connected to your sport goal so Sensei can recommend drills without replacing your main program.</p>${addSportFormOpen ? addSportFormHtml(sport) : `<button id="sportSenseiBtn">Ask Sensei for ${escapeHtml(sport)} drills</button><button class="btn-secondary" id="openAddSportBtn" style="margin-top:8px;">Change Sport</button>`}</div><div class="arc-card"><div class="arc-kicker">Sport Quest</div><div class="arc-title">Skill + Strength</div><div class="arc-quote">“Different game. Same discipline.”</div><p class="arc-desc">Your lifting program builds the raw strength, stability, and durability that carry over onto the field or court, while ${escapeHtml(sport)} itself sharpens the reaction speed, footwork, and game sense a barbell alone can't teach. Neither one replaces the other — together they compound.</p><div class="plan-stats-grid" style="margin-top:12px;margin-bottom:0"><div class="plan-stat-card"><div class="plan-stat-text"><span class="plan-stat-label">Training streak</span><span class="plan-stat-value">${streakWeeks} weeks</span></div></div><div class="plan-stat-card"><div class="plan-stat-text"><span class="plan-stat-label">Workouts cleared</span><span class="plan-stat-value">${m.completed}</span></div></div></div></div>`;
 }
 
 function renderProgressPage(m, cw, startWeight, goalWeight){
@@ -1722,7 +1732,7 @@ function materialize(e, profile){
 }
 
 function materializeCardio(e, profile){
-  const dur = cardioProfileFor(profile.goals).duration;
+  const dur = cardioProfileFor(profile.goals, profile.sport).duration;
   if(e.style === 'intervals'){
     return {id:e.id, name:e.name, tag:'Cardio', sets:6, reps:`${dur.intervals} · 30s on/30s off`, weight:'—', unit:'intervals', muscles:e.desc};
   }
@@ -1740,7 +1750,7 @@ function addCardioToPlan(days, profile, pool){
 
   days.forEach((day, idx)=>{
     let include, useIntervals;
-    const cardioMode = cardioProfileFor(profile.goals).mode;
+    const cardioMode = cardioProfileFor(profile.goals, profile.sport).mode;
     if(cardioMode==='daily'){ include = true; useIntervals = (idx%2===1); }
     else if(cardioMode==='everyOther'){ include = (idx%2===1); useIntervals = false; }
     else { include = (idx === days.length-1); useIntervals = false; } // muscle_gain / strength only: once a week, steady only
@@ -1803,12 +1813,19 @@ function blendedGoalAdj(goals){
   if(adjs.length===0) return 1;
   return adjs.reduce((a,b)=>a+b,0) / adjs.length;
 }
-function cardioProfileFor(goals){
+// A sport in the profile is a real conditioning demand, not just a label --
+// someone training strength/muscle-gain only would otherwise get the
+// sparsest ('weekly') cardio mode, which under-serves an actual athlete.
+// Sport bumps that floor up to 'everyOther' regardless of goals; it never
+// reduces whatever the goals alone would already call for.
+function cardioProfileFor(goals, sport){
   const g = goals||[];
-  if(g.includes('fat_loss')) return {mode:'daily', duration:CARDIO_DURATION.fat_loss};
-  if(g.includes('recomp')) return {mode:'everyOther', duration:CARDIO_DURATION.recomp};
-  if(g.includes('general')) return {mode:'everyOther', duration:CARDIO_DURATION.general};
-  return {mode:'weekly', duration:CARDIO_DURATION.general}; // muscle_gain / strength only
+  const base = g.includes('fat_loss') ? {mode:'daily', duration:CARDIO_DURATION.fat_loss}
+    : g.includes('recomp') ? {mode:'everyOther', duration:CARDIO_DURATION.recomp}
+    : g.includes('general') ? {mode:'everyOther', duration:CARDIO_DURATION.general}
+    : {mode:'weekly', duration:CARDIO_DURATION.general}; // muscle_gain / strength only
+  if((sport||'').trim() && base.mode==='weekly') return {mode:'everyOther', duration:CARDIO_DURATION.general};
+  return base;
 }
 function goalsLabel(goals){
   return (goals&&goals.length) ? goals.map(g=>GOAL_LABEL[g]||g).join(' + ') : 'General Fitness';
@@ -1922,6 +1939,7 @@ let pendingEmail = '';
 let saveStatus = 'idle', lastSavedAt = null;
 let deleteConfirmOpen = false;
 let addFormOpen = false, editingExId = null, deleteConfirmExId = null;
+let addSportFormOpen = false, addSportInFlight = false;
 let weightDetailsOpen = false, dietDetailsOpen = false, recoveryEditing = false, weightChartRange = 'all';
 let dashboardPage = 'overview'; // home / workout / sports / arc / progress
 let coachingNoteExId = null, coachingNoteText = null, coachingNoteLoading = false, coachingNoteError = null;
@@ -2747,6 +2765,63 @@ function startRetake(){
   qIndex = 0;
   APP_STATE = 'questionnaire';
   render();
+}
+
+// Rebuilds just the cardio/conditioning portion of the CURRENT plan to
+// reflect a sport -- every other exercise, and its trackerState, is left
+// completely alone (their ids never change), which is what actually keeps
+// non-cardio progress intact. Cardio exercises do get new ids (the
+// schedule itself may genuinely change -- e.g. weekly -> every-other-day),
+// so their specific checkmarks for the current week don't carry over, but
+// that's a small, honest side effect of the schedule changing, not a full
+// reset the way regenerating the whole plan would be.
+function regenerateCardioForSport(genInput){
+  const pool = buildPool(genInput);
+  plan.days.forEach(day=>{
+    day.exercises.forEach(ex=>{ if(ex.tag==='Cardio') delete trackerState[trackerKey(day.day, ex.id)]; });
+    day.exercises = day.exercises.filter(ex=>ex.tag!=='Cardio');
+    day.subtitle = day.subtitle.replace(/\s*·\s*Cardio\s*$/,'').replace(/^Cardio$/,'');
+  });
+  addCardioToPlan(plan.days, genInput, pool);
+}
+
+// The lightweight way to add or change a sport -- deliberately NOT the same
+// path as startRetake()/finalizeOnboarding(): it doesn't touch goals,
+// experience, equipment, or any other answer, doesn't regenerate the
+// strength portion of the plan, and doesn't reset trackerState, streakWeeks,
+// or streakFreezes. The sport still genuinely changes the plan (conditioning
+// scheduling adapts via cardioProfileFor), it just does so surgically.
+async function addSportToPlan(sportName){
+  if(addSportInFlight) return;
+  const trimmed = sportName.trim();
+  if(!trimmed){ showError('Enter a sport.'); return; }
+  addSportInFlight = true;
+  hideError();
+  const previousSport = profile.sport;
+  const previousPlanSnapshot = JSON.parse(JSON.stringify(plan));
+  const previousTrackerSnapshot = JSON.parse(JSON.stringify(trackerState));
+  const genInput = {
+    goals: profile.goals||[], experience: profile.experience, days: profile.days_per_week,
+    equipment: profile.equipment, currentWeight: profile.current_weight, avoid: profile.avoid||[],
+    sex: profile.sex||'unspecified', weightUnit: profile.weight_unit||'lbs', sport: trimmed,
+  };
+  profile.sport = trimmed;
+  regenerateCardioForSport(genInput);
+  addSportFormOpen = false;
+  renderDashboard();
+  try{
+    const {error: profErr} = await sb.from('user_profiles').upsert({...profile, sport: trimmed});
+    if(profErr) throw profErr;
+    const {error: dataErr} = await sb.from('user_data').upsert({id: currentUser.id, plan, tracker:{state:trackerState, history:trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog, exerciseHistory, dayCompletionLog}, updated_at:new Date().toISOString()});
+    if(dataErr) throw dataErr;
+  }catch(e){
+    profile.sport = previousSport;
+    plan = previousPlanSnapshot;
+    trackerState = previousTrackerSnapshot;
+    showError("Couldn't save your sport -- try again.");
+    renderDashboard();
+  }
+  addSportInFlight = false;
 }
 
 /* ============================== TRACKER LOGIC (per-user) ============================== */
@@ -3875,6 +3950,12 @@ function renderDashboard(){
   });
   const sportsEditPlanBtn = document.getElementById('sportsEditPlanBtn');
   if(sportsEditPlanBtn) sportsEditPlanBtn.onclick = ()=>{ APP_STATE='account'; render(); };
+  const openAddSportBtn = document.getElementById('openAddSportBtn');
+  if(openAddSportBtn) openAddSportBtn.onclick = ()=>{ addSportFormOpen = true; hideError(); renderDashboard(); };
+  const cancelAddSportBtn = document.getElementById('cancelAddSport');
+  if(cancelAddSportBtn) cancelAddSportBtn.onclick = ()=>{ addSportFormOpen = false; hideError(); renderDashboard(); };
+  const saveAddSportBtn = document.getElementById('saveAddSport');
+  if(saveAddSportBtn) saveAddSportBtn.onclick = ()=> addSportToPlan(document.getElementById('addSportInput').value);
   renderSaveStatus();
 }
 
