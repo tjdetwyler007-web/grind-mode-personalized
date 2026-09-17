@@ -765,9 +765,9 @@
   .auth-manga-card input{background:#09090c!important;border:1px solid #34343c!important;color:#fff!important;border-radius:12px!important;box-shadow:none!important;}
   .auth-manga-card input:focus{border-color:#f2b705!important;box-shadow:0 0 0 2px rgba(242,183,5,.12)!important;}
   .auth-manga-card .pw-toggle svg{stroke:#aaa59d!important;}
-  .auth-manga-card .auth-submit{background:linear-gradient(90deg,#e1a700,#ffc928)!important;color:#0b0b0d!important;border:none!important;border-radius:12px!important;box-shadow:0 6px 16px rgba(0,0,0,.45)!important;font-family:'Teko',sans-serif!important;font-size:19px!important;font-weight:800!important;letter-spacing:1.2px!important;transform:scale(1)!important;transition:transform .12s ease,box-shadow .12s ease!important;}
-  .auth-manga-card .auth-submit:hover{transform:scale(1.02)!important;box-shadow:0 8px 20px rgba(0,0,0,.55)!important;}
-  .auth-manga-card .auth-submit:active{transform:scale(0.98)!important;}
+  .auth-manga-card .auth-submit{background:transparent!important;color:var(--gold)!important;border:2px solid var(--gold)!important;border-radius:10px!important;box-shadow:none!important;font-family:'Teko',sans-serif!important;font-size:21px!important;font-weight:800!important;letter-spacing:2px!important;text-transform:uppercase!important;transition:background .15s ease,transform .12s ease!important;}
+  .auth-manga-card .auth-submit:hover{background:rgba(255,199,44,0.10)!important;transform:translateY(-1px)!important;}
+  .auth-manga-card .auth-submit:active{background:rgba(255,199,44,0.18)!important;transform:translateY(0)!important;}
   .auth-manga-card .auth-switch{color:#817d76!important;}
   .auth-manga-card .auth-switch a{color:#f2b705!important;font-weight:800;}
   .auth-footer-quote{text-align:center;margin:16px 12px 0;font:700 9px/1.55 'JetBrains Mono',monospace;color:#7f7a72;letter-spacing:2px;text-transform:uppercase;}
@@ -785,7 +785,7 @@
 .hero-header>.hero-header-bg{background-image:var(--manga-hero)!important;background-size:48% auto!important;background-repeat:no-repeat!important;background-position:96% 42%!important}
 .sensei-hero:before{background-image:var(--anime-sensei)!important;background-size:auto 120%!important;background-repeat:no-repeat!important;background-position:95% 45%!important;opacity:1!important}
 .arc-card{position:relative;overflow:hidden}.arc-card:after{content:"";position:absolute;right:-8px;top:0;width:38%;height:100%;background:var(--anime-arc) center/cover no-repeat;opacity:.26;pointer-events:none;mask-image:linear-gradient(90deg,transparent,#000 35%)}
-.evo-figure{background-image:var(--manga-hero)!important;background-size:cover!important;background-position:center 18%!important;border-radius:10px!important;filter:grayscale(.8) brightness(.55)}.evo-stage.active .evo-figure{filter:none!important;box-shadow:0 0 0 1px var(--gold)}
+.evo-figure{background-image:var(--gm-art-level)!important;background-size:cover!important;background-position:center 18%!important;border-radius:10px!important;filter:grayscale(.8) brightness(.55)}.evo-stage.active .evo-figure{filter:none!important;box-shadow:0 0 0 1px var(--gold)}
 .manga-level-card:after{content:"";position:absolute;right:0;bottom:-12px;width:110px;height:125px;background:var(--manga-hero) center 18%/cover no-repeat;opacity:.72;pointer-events:none;mask-image:linear-gradient(to left,#000 70%,transparent)}
 
 </style>
@@ -836,7 +836,7 @@ body{background:#050708!important}.gm-main{max-width:1180px}.app-topbar{padding:
 
 .manga-level-card,.manga-arc-card,.sport-quest-card,.weight-card,.recovery-card,.nutrition-card{border-radius:12px!important;border:1px solid #2a3138!important;background:#0d1115!important;box-shadow:none!important}.manga-level-card{min-height:160px!important;overflow:hidden!important}.manga-level-card:after{width:150px!important;height:180px!important;opacity:1!important;background-size:cover!important}.manga-level-title,.manga-arc-title{font-weight:950!important;text-transform:uppercase!important;letter-spacing:.4px!important}.manga-xpfill,.weight-bar-fill{background:var(--gold)!important}
 
-.day-tabs{gap:8px!important;padding:4px 16px 12px!important;overflow-x:auto!important}.day-tab{min-width:82px!important;height:92px!important;border-radius:11px!important;background:#15191f!important;border:1px solid #343943!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important}.day-tab .dnum{font-size:31px!important;font-weight:950!important;color:#a66cff!important}.day-tab:nth-child(odd) .dnum{color:#ff3b83!important}.day-tab.active{border-color:var(--gold)!important;box-shadow:0 0 18px color-mix(in srgb,var(--gold) 45%,transparent)!important}.day-tab.active .dnum{color:var(--gold)!important}.day-tab .dsplit{font-size:12px!important;font-weight:900!important;letter-spacing:1px!important}.today-flag{background:var(--gold)!important;color:#111!important;border-radius:5px!important;font-weight:950!important}
+.day-tabs{gap:8px!important;padding:4px 16px 12px!important;overflow-x:auto!important}.day-tab{min-width:82px!important;height:92px!important;border-radius:11px!important;background:#15191f!important;border:1px solid #343943!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important}.day-tab .dnum{font-size:31px!important;font-weight:950!important;color:#a66cff!important}.day-tab:nth-child(odd) .dnum{color:#ff3b83!important}.day-tab.active{border-color:var(--gold)!important;box-shadow:0 0 18px color-mix(in srgb,var(--gold) 45%,transparent)!important}.day-tab.active .dnum{color:inherit!important}.day-tab .dsplit{font-size:12px!important;font-weight:900!important;letter-spacing:1px!important}.today-flag{background:var(--gold)!important;color:#111!important;border-radius:5px!important;font-weight:950!important}
 
 .workout-hero,.workout-day-hero{border-radius:14px!important;overflow:hidden!important;border:1px solid #512019!important;background-image:linear-gradient(90deg,rgba(5,7,8,.96),rgba(5,7,8,.38)),var(--manga-hero)!important;background-size:auto,55% auto!important;background-repeat:no-repeat!important;background-position:center,right center!important;min-height:230px!important}.exercise-card{border-radius:10px!important;background:#0e1216!important;border:1px solid #2b3138!important}.exercise-name{font-weight:900!important}.complete-all-btn,.auth-submit,.primary-btn{background:var(--gold)!important;color:#0b0b0b!important;border-radius:7px!important;font-weight:950!important}
 
@@ -1096,8 +1096,8 @@ html[data-avatar-theme="male"] .recovery-card:after{width:26%!important}
 .coach-fab{width:48px!important;height:48px!important}
 }
 @media(max-width:390px){
-.arc-card,.day-header,.sport-quest{padding-top:148px!important}
-.arc-card:after,.day-header:before,.sport-quest:after{height:148px!important}
+.arc-card,.day-header,.sport-quest{padding-top:148px!important;padding-right:14px!important}
+.arc-card:after,.day-header:before,.sport-quest:after{top:0!important;left:0!important;right:0!important;width:100%!important;height:148px!important;border-left:0!important;border-bottom:1px solid var(--gm-line)!important;background-position:center 28%!important}
 .sensei-hero{min-height:168px!important}
 }
 /* The photo strip on these cards had inherited border-radius:50% and a 1px
@@ -1109,6 +1109,11 @@ html[data-avatar-theme="male"] .recovery-card:after{width:26%!important}
    look instead of a clean rectangular edge. Zeroed out here for all three
    photo-backed cards so the image reads as a plain photo, not a badge. */
 .arc-card:after,.sport-quest:after,.manga-level-card:after{border-radius:0!important;filter:none!important;background-color:transparent!important}
+/* The topbar icons (account/theme/sign-out) render their SVG stroke from
+   --on-photo-gold, a variable that was only ever defined once, globally, as
+   a fixed gold -- so female-theme users saw gold icons regardless of the
+   avatar theme's pink accent, in both light and dark mode. */
+html[data-avatar-theme="female"]{--on-photo-gold:#ff2f8b!important}
 </style>
 
 </head>
