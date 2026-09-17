@@ -1100,6 +1100,15 @@ html[data-avatar-theme="male"] .recovery-card:after{width:26%!important}
 .arc-card:after,.day-header:before,.sport-quest:after{height:148px!important}
 .sensei-hero{min-height:168px!important}
 }
+/* The photo strip on these cards had inherited border-radius:50% and a 1px
+   blur filter from an old decorative circle-blob rule that predates the
+   photo art feature (.arc-card:after used to just be a soft blurred accent
+   dot, not a real photo) -- CSS keeps unset properties from earlier rules
+   on the same pseudo-element, so that leftover radius/blur was still being
+   applied to the actual portrait photo, giving it a circular/oval framed
+   look instead of a clean rectangular edge. Zeroed out here for all three
+   photo-backed cards so the image reads as a plain photo, not a badge. */
+.arc-card:after,.sport-quest:after,.manga-level-card:after{border-radius:0!important;filter:none!important;background-color:transparent!important}
 </style>
 
 </head>
