@@ -756,7 +756,7 @@
   .auth-manga-brand:before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 76% 18%,rgba(242,183,5,.12),transparent 31%),repeating-linear-gradient(142deg,transparent 0 19px,rgba(242,183,5,.028) 19px 20px);pointer-events:none;}
   .auth-manga-brand:after{content:'進';position:absolute;right:-4px;top:-20px;font:700 150px/1 'Teko',sans-serif;color:rgba(242,183,5,.045);transform:rotate(-8deg);pointer-events:none;}
   .auth-brand-inner{position:relative;z-index:1;text-align:center;}
-  .auth-brush-logo{width:220px; max-width:70%; aspect-ratio:700/392; background-image:var(--gm-logo-mark); background-size:contain; background-repeat:no-repeat; background-position:left center; margin:2px 0 12px;}
+  .auth-brush-logo{width:220px; max-width:70%; aspect-ratio:700/392; background-image:var(--gm-logo-mark); background-size:contain; background-repeat:no-repeat; background-position:center; margin:2px auto 12px;}
   .auth-brush-logo span{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0);}
   .auth-brush-logo span{display:block;}
   .auth-mantra{font:700 10px/1.4 'JetBrains Mono',monospace;letter-spacing:3px;color:#f5f3ec;text-transform:uppercase;opacity:.9;}
@@ -773,7 +773,7 @@
   .auth-manga-card input{background:#09090c!important;border:1px solid #34343c!important;color:#fff!important;border-radius:12px!important;box-shadow:none!important;}
   .auth-manga-card input:focus{border-color:#f2b705!important;box-shadow:0 0 0 2px rgba(242,183,5,.12)!important;}
   .auth-manga-card .pw-toggle svg{stroke:#aaa59d!important;}
-  .auth-manga-card .auth-submit{background:transparent!important;color:var(--gold)!important;border:none!important;border-bottom:2px solid var(--gold)!important;border-radius:0!important;box-shadow:none!important;font-family:'Teko',sans-serif!important;font-size:22px!important;font-weight:800!important;letter-spacing:2px!important;text-transform:uppercase!important;padding-bottom:10px!important;transition:opacity .15s ease,transform .12s ease!important;}
+  .auth-manga-card .auth-submit{background:transparent!important;color:var(--gold)!important;border:none!important;border-radius:0!important;box-shadow:none!important;font-family:'Teko',sans-serif!important;font-size:22px!important;font-weight:800!important;letter-spacing:2px!important;text-transform:uppercase!important;transition:opacity .15s ease,transform .12s ease!important;}
   .auth-manga-card .auth-submit:hover{opacity:0.82!important;transform:translateY(-1px)!important;}
   .auth-manga-card .auth-submit:active{opacity:0.65!important;transform:translateY(0)!important;}
   .auth-manga-card .auth-switch{color:#817d76!important;}
@@ -1225,11 +1225,11 @@ function sportQuestHtml(){
   return `<div class="sport-quest"><div class="arc-kicker">Sport Quest</div><h3>${escapeHtml(profile.sport)}</h3><p>Your strength plan and recovery context are available to Sensei so sport-specific drills can be added without losing the rest of your program.</p><button id="sportSenseiBtn">Ask Sensei for ${escapeHtml(profile.sport)} drills</button></div>`;
 }
 function renderTrainingArcPage(m){
-  return `<div class="manga-page-title">Training Arc</div><div class="stats-strip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg><span>Every completed exercise, logged weight, and week you keep your streak alive earns XP. Level up enough and you unlock the next chapter below. Boss Battles are milestone workouts — full-clear one to earn bonus XP and push the arc forward.</span></div>${mangaLevelCardHtml(m)}<div class="chapter-list">${MANGA_CHAPTERS.map((c,i)=>`<div class="chapter-row ${i===m.chapterIndex?'active':''}"><div class="chapter-num">${String(i+1).padStart(2,'0')}</div><div><b>${c.name}</b><br><span>${c.quote}</span></div><div class="chapter-state">${i<m.chapterIndex?'CLEARED':i===m.chapterIndex?'ACTIVE':'LOCKED'}</div></div>`).join('')}</div><div class="boss-card"><div class="arc-kicker" style="color:#ff899d">Boss Battle</div><h3>${m.level<8?'THE IRON WALL':m.level<14?'THE GRIND':'THE FINAL REP'}</h3><p>Boss Battles are milestone workouts: complete every prescribed set on your next full-clear day to earn bonus XP and advance the arc.</p></div>`;
+  return `<div class="manga-page-title">Training Arc</div><div class="stats-strip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg><span>Every completed exercise, logged weight, and week you keep your streak alive earns XP. Level up enough and you unlock the next chapter below. Boss Battles are milestone workouts — full-clear one to earn bonus XP and push the arc forward.</span></div><div class="chapter-list">${MANGA_CHAPTERS.map((c,i)=>`<div class="chapter-row ${i===m.chapterIndex?'active':''}"><div class="chapter-num">${String(i+1).padStart(2,'0')}</div><div><b>${c.name}</b><br><span>${c.quote}</span></div><div class="chapter-state">${i<m.chapterIndex?'CLEARED':i===m.chapterIndex?'ACTIVE':'LOCKED'}</div></div>`).join('')}</div><div class="boss-card"><div class="arc-kicker" style="color:#ff899d">Boss Battle</div><h3>${m.level<8?'THE IRON WALL':m.level<14?'THE GRIND':'THE FINAL REP'}</h3><p>Boss Battles are milestone workouts: complete every prescribed set on your next full-clear day to earn bonus XP and advance the arc.</p></div>`;
 }
 function renderSportsPage(m){
   const sport = (profile && profile.sport) ? profile.sport : '';
-  if(!sport) return `<div class="manga-page-title">Sports</div><div class="sport-quest"><div class="arc-kicker">Sport Training</div><h3>ADD YOUR SPORT</h3><p>Add basketball, soccer, tennis, running, or another sport by editing your plan. Sensei will use it when suggesting drills, conditioning, and recovery.</p><button id="sportsEditPlanBtn">Add a sport</button></div>${mangaLevelCardHtml(m)}`;
+  if(!sport) return `<div class="manga-page-title">Sports</div><div class="sport-quest"><h3>ADD YOUR SPORT</h3><p>Add basketball, soccer, tennis, running, or another sport by editing your plan. Sensei will use it when suggesting drills, conditioning, and recovery.</p><button id="sportsEditPlanBtn">Add a sport</button></div>${mangaLevelCardHtml(m)}`;
   return `<div class="manga-page-title">Sports</div><div class="sport-quest sports-feature"><h3>${escapeHtml(sport)}</h3><p>Strength work, recovery, and your recent completion history stay connected to your sport goal so Sensei can recommend drills without replacing your main program.</p><button id="sportSenseiBtn">Ask Sensei for ${escapeHtml(sport)} drills</button></div>${mangaLevelCardHtml(m)}<div class="arc-card"><div class="arc-kicker">Sport Quest</div><div class="arc-title">Skill + Strength</div><div class="arc-quote">“Different game. Same discipline.”</div><div class="plan-stats-grid" style="margin-top:12px;margin-bottom:0"><div class="plan-stat-card"><div class="plan-stat-text"><span class="plan-stat-label">Training streak</span><span class="plan-stat-value">${streakWeeks} weeks</span></div></div><div class="plan-stat-card"><div class="plan-stat-text"><span class="plan-stat-label">Workouts cleared</span><span class="plan-stat-value">${m.completed}</span></div></div></div></div>`;
 }
 
@@ -1521,6 +1521,22 @@ const TEMPLATES = {
   ],
 };
 
+// Weight unit preference: every exercise's own weight/warm-ups/progression is
+// generated and stored internally in the SAME lbs numbers this file always
+// used (the seed values below, the round-to-5 math, the +/-5 progression
+// step) -- kg is purely a DISPLAY conversion applied once, in materialize(),
+// so none of that existing, tested math has to change. round5/roundToUnit
+// below are the only two places that need to know which unit is showing.
+const LBS_PER_KG = 2.20462;
+function roundToUnit(lbsValue, unit){
+  if(unit==='kg') return Math.max(2.5, Math.round((lbsValue/LBS_PER_KG)/2.5)*2.5);
+  return Math.max(5, Math.round(lbsValue/5)*5);
+}
+// Whether an exercise's own recorded weight/reps should be captured at all --
+// true for both lbs and kg units, false for bodyweight/cardio, which have no
+// numeric load. Centralized here since it now needs to recognize both units
+// everywhere it's checked, not just the historical lbs-only spelling.
+function isWeightedUnit(unit){ return unit==='lbs' || unit==='lbs ea' || unit==='kg' || unit==='kg ea'; }
 const EXP_MULT = {beginner:0.65, intermediate:1.0, advanced:1.3};
 // A population-average calibration only -- individual strength varies far
 // more than sex alone predicts. Defaults to 1 (no change) for anyone who
@@ -1564,15 +1580,17 @@ function materialize(e, profile){
   const reps = REP_RANGES[repCat][e.compound?'compound':'isolation'];
   const sets = SET_COUNTS[repCat][e.compound?'compound':'isolation'];
   let weightDisplay = '—';
+  let unit = e.unit;
   if(e.unit !== 'bodyweight'){
     const mult = EXP_MULT[profile.experience] || 1;
     const sexMult = SEX_MULT[profile.sex] || 1;
     const bwRatio = e.bwScaled ? (profile.currentWeight / 183) : 1;
-    let w = Math.round((e.seed * mult * sexMult * bwRatio) / 5) * 5;
-    w = Math.max(5, w);
-    weightDisplay = String(w);
+    const wLbs = Math.max(5, Math.round((e.seed * mult * sexMult * bwRatio) / 5) * 5);
+    const prefUnit = profile.weightUnit === 'kg' ? 'kg' : 'lbs';
+    weightDisplay = String(roundToUnit(wLbs, prefUnit));
+    unit = prefUnit==='kg' ? (e.unit==='lbs ea' ? 'kg ea' : 'kg') : e.unit;
   }
-  return {id:e.id, name:e.name, tag:MUSCLE_LABEL[e.muscle]||e.muscle, sets, reps, weight:weightDisplay, unit:e.unit, muscles:e.desc};
+  return {id:e.id, name:e.name, tag:MUSCLE_LABEL[e.muscle]||e.muscle, sets, reps, weight:weightDisplay, unit, muscles:e.desc};
 }
 
 function materializeCardio(e, profile){
@@ -1717,6 +1735,8 @@ const QUESTIONS = [
     {value:'advanced', label:'Advanced (3+ yrs)'} ]},
   {key:'sex', title:'Biological sex (helps us start your suggested weights in the right range)', type:'single', options:[
     {value:'male', label:'Male'}, {value:'female', label:'Female'}, {value:'unspecified', label:'Prefer not to say'} ]},
+  {key:'weightUnit', title:'Preferred weight unit for your workouts', type:'single', options:[
+    {value:'lbs', label:'Pounds (lbs)'}, {value:'kg', label:'Kilograms (kg)'} ]},
   {key:'days', title:'How many days a week can you train?', type:'single', options:[
     {value:3, label:'3 Days'}, {value:4, label:'4 Days'}, {value:5, label:'5 Days'}, {value:6, label:'6 Days'} ]},
   {key:'equipment', title:'What equipment do you have access to?', type:'single', options:[
@@ -1935,7 +1955,7 @@ async function loadProfileAndData(isRetry){
 }
 
 function profileToGenInput(p){
-  return {goals:p.goals||[], experience:p.experience, days:p.days_per_week, equipment:p.equipment, currentWeight:p.current_weight, avoid:p.avoid||[], sex:p.sex||'unspecified'};
+  return {goals:p.goals||[], experience:p.experience, days:p.days_per_week, equipment:p.equipment, currentWeight:p.current_weight, avoid:p.avoid||[], sex:p.sex||'unspecified', weightUnit:p.weight_unit||'lbs'};
 }
 
 let writeLock = Promise.resolve();
@@ -2289,13 +2309,18 @@ async function buildPlanFromChat(){
   // a brand-new signup), which is exactly what tells us not to touch
   // exercises on a plan that was never actually created.
   if(plan && drills && drills.length > 0){
+    const prefUnit = profile.weight_unit==='kg' ? 'kg' : 'lbs';
     drills.forEach(d => {
       const dayObj = plan.days[d.dayIndex - 1];
       if(!dayObj) return; // an out-of-range index just gets skipped, not crashed on
+      // The coach/chat AI always proposes weight in lbs (its own contract) --
+      // converted here to the person's preferred unit, same as every
+      // tracker-generated suggestion, so a coach-added exercise doesn't
+      // stand out as the one exception still shown in lbs.
       dayObj.exercises.push({
         id: 'coach_'+Date.now()+'_'+Math.random().toString(36).slice(2),
         name: d.name, tag: MUSCLE_LABEL[d.muscle] || 'Cardio', sets: d.sets, reps: d.reps,
-        weight: d.weight ? String(d.weight) : '—', unit: d.weight ? 'lbs' : 'bodyweight',
+        weight: d.weight ? String(roundToUnit(d.weight, prefUnit)) : '—', unit: d.weight ? prefUnit : 'bodyweight',
         muscles: d.targets,
       });
     });
@@ -2377,7 +2402,7 @@ function renderCoach(){
           ${coachExercisesProposal.exercises.map(ex => `
             <div class="chat-ready-row" style="flex-direction:column; align-items:flex-start; gap:2px;">
               <b>${escapeHtml(ex.name)}</b>
-              <span style="font-size:11.5px;">${ex.sets} sets × ${escapeHtml(ex.reps)}${ex.weight ? ` @ ${ex.weight} lbs` : ''} — ${escapeHtml(ex.targets)}</span>
+              <span style="font-size:11.5px;">${ex.sets} sets × ${escapeHtml(ex.reps)}${ex.weight ? ` @ ${roundToUnit(ex.weight, profile.weight_unit==='kg'?'kg':'lbs')} ${profile.weight_unit==='kg'?'kg':'lbs'}` : ''} — ${escapeHtml(ex.targets)}</span>
             </div>
           `).join('')}
           <button id="applyCoachExercises">Add to My Plan</button>
@@ -2507,12 +2532,15 @@ async function applyCoachExercisesProposal(){
     renderCoach();
     return;
   }
-  const newExercises = coachExercisesProposal.exercises.map((ex, i) => ({
-    id: 'coach_'+Date.now()+'_'+i,
-    name: ex.name, tag: MUSCLE_LABEL[ex.muscle] || 'Cardio', sets: ex.sets, reps: ex.reps,
-    weight: ex.weight ? String(ex.weight) : '—', unit: ex.weight ? 'lbs' : 'bodyweight',
-    muscles: ex.targets,
-  }));
+  const newExercises = coachExercisesProposal.exercises.map((ex, i) => {
+    const prefUnit = profile.weight_unit==='kg' ? 'kg' : 'lbs';
+    return {
+      id: 'coach_'+Date.now()+'_'+i,
+      name: ex.name, tag: MUSCLE_LABEL[ex.muscle] || 'Cardio', sets: ex.sets, reps: ex.reps,
+      weight: ex.weight ? String(roundToUnit(ex.weight, prefUnit)) : '—', unit: ex.weight ? prefUnit : 'bodyweight',
+      muscles: ex.targets,
+    };
+  });
   dayObj.exercises.push(...newExercises);
   coachExercisesProposal = null;
   renderCoach();
@@ -2539,7 +2567,7 @@ async function finalizeOnboarding(){
   const genInput = {
     goals: qAnswers.goals||[], experience: qAnswers.experience, days: qAnswers.days,
     equipment: qAnswers.equipment, currentWeight: qAnswers.currentWeight, avoid: qAnswers.avoid||[],
-    sex: qAnswers.sex || 'unspecified',
+    sex: qAnswers.sex || 'unspecified', weightUnit: qAnswers.weightUnit || 'lbs',
   };
   const newPlan = generatePlan(genInput);
   const profileRow = {
@@ -2549,7 +2577,7 @@ async function finalizeOnboarding(){
     equipment: qAnswers.equipment, activity: qAnswers.activity, diet: qAnswers.diet,
     current_weight: qAnswers.currentWeight, goal_weight: qAnswers.goalWeight,
     timeframe_weeks: qAnswers.timeframeWeeks, avoid: qAnswers.avoid||[], onboarded: true,
-    sex: qAnswers.sex || 'unspecified',
+    sex: qAnswers.sex || 'unspecified', weight_unit: qAnswers.weightUnit || 'lbs',
     sport: (qAnswers.sport||'').trim() || null,
     created_at: new Date().toISOString(),
   };
@@ -2584,6 +2612,7 @@ function startRetake(){
     goals:[...(profile.goals||[])], experience:profile.experience, days:profile.days_per_week, equipment:profile.equipment,
     activity:profile.activity, diet:profile.diet, currentWeight:profile.current_weight, goalWeight:profile.goal_weight,
     timeframeWeeks:profile.timeframe_weeks, avoid:[...(profile.avoid||[])], sex:profile.sex||'unspecified',
+    weightUnit: profile.weight_unit || 'lbs',
     sport: profile.sport || '',
     username: profile.username || '',
   };
@@ -2644,11 +2673,12 @@ function defaultRepsFor(reps){
 // isExerciseDone/dayProgress, which stay scoped to the real working sets.
 function computeWarmupSets(ex){
   const w = parseFloat(ex.weight);
-  if(!w || ex.unit==='bodyweight') return [];
-  const round5 = n => Math.max(0, Math.round(n/5)*5);
+  if(!w || !isWeightedUnit(ex.unit)) return [];
+  const isKg = ex.unit.startsWith('kg');
+  const round = n => Math.max(0, isKg ? Math.round(n/2.5)*2.5 : Math.round(n/5)*5);
   return [
-    {label:'Warm-up 1', weight: round5(w*0.5), reps:'10'},
-    {label:'Warm-up 2', weight: round5(w*0.7), reps:'6'},
+    {label:'Warm-up 1', weight: round(w*0.5), reps:'10'},
+    {label:'Warm-up 2', weight: round(w*0.7), reps:'6'},
   ];
 }
 function dayProgress(dayNum){
@@ -2728,12 +2758,13 @@ function recordAndApplyProgression(){
       exerciseHistory[ex.id].push(allDone);
       if(exerciseHistory[ex.id].length>4) exerciseHistory[ex.id] = exerciseHistory[ex.id].slice(-4);
 
-      if(ex.unit==='bodyweight') return; // nothing numeric to adjust
+      if(!isWeightedUnit(ex.unit)) return; // nothing numeric to adjust (bodyweight or cardio)
       const hist = exerciseHistory[ex.id];
       if(hist.length<2) return;
       const lastTwo = hist.slice(-2);
       const w = parseFloat(ex.weight);
       if(isNaN(w)) return;
+      const step = ex.unit.startsWith('kg') ? 2.5 : 5;
       let newW = null;
       let recoveryDriven = false;
       if(lastTwo[0]===true && lastTwo[1]===true){
@@ -2743,15 +2774,15 @@ function recordAndApplyProgression(){
           // overtraining, not proof the weight was too light -- ease off
           // instead of pushing further, and say so plainly rather than
           // quietly overriding what completion alone would have done.
-          newW = Math.max(5, w-5);
+          newW = Math.max(step, w-step);
           recoveryDriven = true;
         } else {
-          newW = w+5;
+          newW = w+step;
         }
       }
-      else if(lastTwo[0]===false && lastTwo[1]===false) newW = Math.max(5, w-5);
+      else if(lastTwo[0]===false && lastTwo[1]===false) newW = Math.max(step, w-step);
       if(newW!==null && newW!==w){
-        const msg = `${ex.name} → ${newW} lbs`;
+        const msg = `${ex.name} → ${newW} ${ex.unit.replace(' ea','')}`;
         if(recoveryDriven) recoveryMessages.push(msg); else messages.push(msg);
         plan.days.forEach(dd=> dd.exercises.forEach(e=>{ if(e.id===ex.id) e.weight = String(newW); }));
       }
@@ -3103,6 +3134,8 @@ function exerciseFormFieldsHtml(prefix, defaults){
         <select id="${prefix}Unit">
           <option value="lbs" ${defaults.unit==='lbs'?'selected':''}>lbs</option>
           <option value="lbs ea" ${defaults.unit==='lbs ea'?'selected':''}>lbs each</option>
+          <option value="kg" ${defaults.unit==='kg'?'selected':''}>kg</option>
+          <option value="kg ea" ${defaults.unit==='kg ea'?'selected':''}>kg each</option>
           <option value="bodyweight" ${defaults.unit==='bodyweight'?'selected':''}>Bodyweight</option>
         </select>
       </div>
@@ -3111,7 +3144,7 @@ function exerciseFormFieldsHtml(prefix, defaults){
 
 function addExerciseFormHtml(){
   return `<div class="add-ex-row">
-    ${exerciseFormFieldsHtml('newEx', {name:'', muscle:'shoulders', sets:3, reps:'8-12', weight:'', unit:'lbs'})}
+    ${exerciseFormFieldsHtml('newEx', {name:'', muscle:'shoulders', sets:3, reps:'8-12', weight:'', unit:(profile.weight_unit==='kg'?'kg':'lbs')})}
     <div class="q-nav" style="margin-top:14px;">
       <button id="cancelAddEx">Cancel</button>
       <button class="primary" id="saveAddEx">Add Exercise</button>
@@ -3275,7 +3308,7 @@ function renderDashboard(){
   const heroWeekPctLabel = Math.round(weekPct*100);
   const heroWeekColor = weekBarColor(weekPct);
   const overviewHtml = `
-    <div class="gm-v7-grid">${mangaLevelCardHtml(manga)}${mangaArcCardHtml(manga)}${sportQuestHtml()}</div>
+    <div class="gm-v7-grid">${mangaArcCardHtml(manga)}${profile.sex==='female' ? '' : sportQuestHtml()}</div>
     <div class="plan-stats-grid">
       <div class="plan-stat-card">
         <div class="plan-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></div>
@@ -3505,7 +3538,8 @@ function renderDashboard(){
     // used to slip through the old "!== 'bodyweight'" check and end up with
     // meaningless set-log inputs (a cardio exercise showing "lbs" as its
     // logged weight and a duration number as its logged reps).
-    const isWeighted = ex.unit === 'lbs' || ex.unit === 'lbs ea';
+    const isWeighted = isWeightedUnit(ex.unit);
+    const baseUnitLabel = isWeighted ? ex.unit.replace(' ea','') : 'lbs';
     const warmupSets = isWeighted ? computeWarmupSets(ex) : [];
     const warmupChecked = (Array.isArray(s.warmupChecked) && s.warmupChecked.length===warmupSets.length) ? s.warmupChecked : new Array(warmupSets.length).fill(false);
     const warmupLogs = Array.isArray(s.warmupLogs) ? s.warmupLogs : [];
@@ -3523,8 +3557,8 @@ function renderDashboard(){
                   ${warmupChecked[i] ? checkSvg : '★'}
                 </div>
                 <span class="set-log-label">${escapeHtml(w.label)}</span>
-                <input class="set-log-input" type="number" inputmode="decimal" step="any" data-warmup-weight="${ex.id}|${i}" value="${escapeHtml(String(wWeight))}" placeholder="lbs" aria-label="${escapeHtml(w.label)} weight">
-                <span class="set-log-unit">lbs</span>
+                <input class="set-log-input" type="number" inputmode="decimal" step="any" data-warmup-weight="${ex.id}|${i}" value="${escapeHtml(String(wWeight))}" placeholder="${baseUnitLabel}" aria-label="${escapeHtml(w.label)} weight">
+                <span class="set-log-unit">${baseUnitLabel}</span>
                 <span class="set-log-x">×</span>
                 <input class="set-log-input reps" type="number" inputmode="numeric" data-warmup-reps="${ex.id}|${i}" value="${escapeHtml(String(wReps))}" placeholder="reps" aria-label="${escapeHtml(w.label)} reps">
               </div>`;}).join('')}
@@ -3538,8 +3572,8 @@ function renderDashboard(){
                   ${setsChecked[i] ? checkSvg : (i+1)}
                 </div>
                 <span class="set-log-label">Set ${i+1}</span>
-                <input class="set-log-input" type="number" inputmode="decimal" step="any" data-log-weight="${ex.id}|${i}" value="${escapeHtml(String(logWeight))}" placeholder="lbs" aria-label="Set ${i+1} weight">
-                <span class="set-log-unit">lbs</span>
+                <input class="set-log-input" type="number" inputmode="decimal" step="any" data-log-weight="${ex.id}|${i}" value="${escapeHtml(String(logWeight))}" placeholder="${baseUnitLabel}" aria-label="Set ${i+1} weight">
+                <span class="set-log-unit">${baseUnitLabel}</span>
                 <span class="set-log-x">×</span>
                 <input class="set-log-input reps" type="number" inputmode="numeric" data-log-reps="${ex.id}|${i}" value="${escapeHtml(String(logReps))}" placeholder="reps" aria-label="Set ${i+1} reps">
               </div>`;}).join('')}
@@ -3723,7 +3757,6 @@ function renderSignIn(){
       <div class="auth-manga-brand">
         <div class="auth-brand-inner">
           <div class="auth-brush-logo"><span>GRIND</span><span>MODE</span></div>
-          <div class="auth-gold-rule"></div>
           <p class="auth-promise">Your training arc, progression, sport, recovery and nutrition — built around the work you actually do.</p>
           <div class="auth-benefits">
             <div class="auth-benefit"><b>鍛</b><span>Train</span></div>
@@ -3922,7 +3955,16 @@ function renderAccount(){
       profile.username = val;
       document.getElementById('usernameEditArea').innerHTML = '';
       renderAccount();
-      const {error} = await sb.from('user_profiles').upsert({id: currentUser.id, username: val});
+      // Sending only {id, username} was the one place in the whole app
+      // upserting a PARTIAL row to user_profiles -- every other write here
+      // (finalizeOnboarding, retakes, coach-proposed updates) always sends
+      // the full row. A partial payload can fail against RLS/NOT NULL
+      // constraints on a real Supabase table even though the in-memory mock
+      // happily merges it, which is exactly the kind of gap that wouldn't
+      // show up until this hit a real backend. Sending the full current
+      // profile with just the username changed matches the pattern that
+      // already works everywhere else.
+      const {error} = await sb.from('user_profiles').upsert({...profile, username: val});
       if(error){
         profile.username = previousUsername;
         showError("Couldn't save your username -- try again.");
