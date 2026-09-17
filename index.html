@@ -267,7 +267,12 @@
   .set-log-row.warmup .set-log-label{font-style:italic;}
   .set-log-input{width:100%; min-width:0; flex:1; background:var(--bg-2); border:1.5px solid var(--line); border-radius:7px; color:var(--ink); font-family:'JetBrains Mono',monospace; font-size:16px; padding:6px 7px; text-align:center;}
   .set-log-input:focus{outline:none; border-color:var(--gold);}
-  .set-log-x{color:var(--muted); font-size:11px; flex-shrink:0;}
+  .set-log-unit{width:24px; flex-shrink:0; font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px;}
+  .set-log-x{color:var(--muted); font-size:11px; flex-shrink:0; width:14px; text-align:center;}
+  .set-log-header{display:flex; align-items:center; gap:6px; margin-bottom:1px;}
+  .set-log-header-spacer{width:90px; flex-shrink:0;}
+  .set-log-header-gap{width:44px; flex-shrink:0;}
+  .set-log-header-weight, .set-log-header-reps{flex:1; min-width:0; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); text-align:center;}
 
   .weight-label{width:100%; background:var(--bg-2); border:1.5px solid var(--gold-dim); border-radius:8px; color:var(--gold); font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; padding:7px 8px; display:flex; align-items:baseline; gap:4px;}
   .weight-label .unit{font-size:10px; font-weight:600; color:var(--muted);}
@@ -1058,11 +1063,17 @@ html[data-theme] .arc-kicker,html[data-theme] .arc-quote,html[data-theme] .plan-
 html[data-theme] input,html[data-theme] select,html[data-theme] textarea{background:var(--gm-surface2)!important;color:var(--gm-text)!important;border-color:var(--gm-line)!important}html[data-theme] input::placeholder,html[data-theme] textarea::placeholder{color:var(--gm-muted)!important;opacity:1!important}
 .manga-level-card{float:none!important;width:auto!important;min-width:0!important;overflow:hidden!important}.manga-level-card:after,.manga-level-card:before{display:none!important}
 .arc-card{min-width:0!important;position:relative!important;overflow:hidden!important;padding-right:clamp(170px,52%,320px)!important;min-height:195px!important}.arc-card:after{display:block!important;content:""!important;position:absolute!important;top:0!important;right:0!important;bottom:0!important;width:52%!important;height:auto!important;background-image:var(--gm-art-arc)!important;background-size:cover!important;background-position:center 20%!important;opacity:1!important;border-left:1px solid var(--gm-line)!important;pointer-events:none!important}.arc-card>*{position:relative!important;z-index:2!important;max-width:none!important}.arc-track{max-width:100%!important}
-.day-header{min-width:0!important;position:relative!important;overflow:hidden!important;padding-right:clamp(150px,38%,280px)!important;min-height:180px!important}.day-header:before{display:block!important;content:""!important;position:absolute!important;z-index:0!important;top:0!important;right:0!important;bottom:0!important;width:38%!important;height:auto!important;background-image:var(--gm-art-workout)!important;background-size:cover!important;background-position:center!important;opacity:1!important;border-left:1px solid var(--gm-line)!important;pointer-events:none!important}.day-header:after{display:none!important}.day-header>*{position:relative!important;z-index:2!important;max-width:100%!important}
-.sport-quest{padding-right:clamp(175px,52%,340px)!important;min-height:180px!important}.sport-quest:after{width:52%!important;opacity:1!important;background-image:var(--gm-art-sports)!important;background-size:cover!important;background-position:center!important;border-left:1px solid var(--gm-line)!important}.weight-card:before,.weight-card:after{display:none!important}
+.day-header{min-width:0!important;position:relative!important;overflow:hidden!important;padding-right:clamp(150px,38%,280px)!important;min-height:180px!important}.day-header:before{display:block!important;content:""!important;position:absolute!important;z-index:0!important;top:0!important;right:0!important;bottom:0!important;width:38%!important;height:auto!important;background-image:var(--gm-art-workout)!important;background-size:cover!important;background-position:center 20%!important;opacity:1!important;border-left:1px solid var(--gm-line)!important;pointer-events:none!important}.day-header:after{display:none!important}.day-header>*{position:relative!important;z-index:2!important;max-width:100%!important}
+.sport-quest{padding-right:clamp(175px,52%,340px)!important;min-height:180px!important}.sport-quest:after{width:52%!important;opacity:1!important;background-image:var(--gm-art-sports)!important;background-size:cover!important;background-position:center 20%!important;border-left:1px solid var(--gm-line)!important}.weight-card:before,.weight-card:after{display:none!important}
 .gm-main>*{box-sizing:border-box!important;max-width:100%!important}.gm-v7-grid{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:14px!important}.gm-v7-grid>*{width:auto!important;float:none!important;margin:0!important;min-width:0!important}.plan-stats-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important}.plan-stat-card{min-width:0!important;width:auto!important;overflow:hidden!important}.weight-card,.diet-card,.recovery-card,.nutrition-card{display:block!important;width:auto!important;max-width:100%!important;float:none!important}
 .sensei-hero{min-height:220px!important;position:relative!important;overflow:hidden!important;background:var(--gm-surface)!important;border:1px solid var(--gm-line)!important;padding:24px 22px!important;display:flex!important;align-items:flex-end!important}.sensei-hero:before{content:""!important;display:block!important;position:absolute!important;z-index:0!important;inset:0!important;width:100%!important;background-image:var(--gm-art-sensei-dedicated)!important;background-size:cover!important;background-position:center 18%!important;opacity:1!important;border-left:0!important}.sensei-hero:after{content:""!important;display:block!important;position:absolute!important;inset:0!important;background:linear-gradient(0deg,rgba(5,7,9,.88) 0%,rgba(5,7,9,.15) 55%,rgba(5,7,9,.35) 100%)!important;pointer-events:none!important}.sensei-hero>*{position:relative!important;z-index:2!important}.sensei-copy h2{color:var(--gm-accent)!important;text-shadow:0 2px 8px rgba(0,0,0,.8)!important}.sensei-copy p{color:#f0eef2!important;text-shadow:0 1px 6px rgba(0,0,0,.8)!important}.chat-wrap{max-width:760px!important;padding:0 16px 16px!important}.chat-log{background:transparent!important}.chat-bubble.assistant{border:1px solid var(--gm-line)!important}.chat-bubble.user{background:var(--gm-surface2)!important;color:var(--gm-text)!important}.chat-ready-card,.sensei-quick button{background:var(--gm-surface)!important;color:var(--gm-text)!important;border-color:var(--gm-line)!important}
 @media(min-width:900px){.gm-desktop-shell{display:grid!important;grid-template-columns:230px minmax(0,1fr)!important}.gm-sidebar{width:auto!important;min-width:0!important}.gm-main{width:auto!important;min-width:0!important;overflow-x:hidden!important;padding:0 24px 34px!important}.gm-v7-hero,.gm-v7-grid,.plan-stats-grid,.stats-strip,.recovery-card,.weight-card,.diet-card{margin-left:0!important;margin-right:0!important}.gm-v7-hero{margin-top:18px!important}.gm-v7-grid,.plan-stats-grid{margin-bottom:14px!important}}
+/* The per-set weight/reps row was stretching to fill the whole (much wider)
+   desktop exercise card, blowing the two number inputs up to 250px+ each
+   for a 2-4 digit value. Capping the row itself keeps its internal
+   checkbox/label/input proportions intact while stopping it from filling
+   space the actual content never needed. */
+@media(min-width:900px){.set-log-list,.sets-row{max-width:360px!important}}
 @media(max-width:700px){.gm-v7-grid{grid-template-columns:1fr!important}.plan-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.arc-card{padding-right:108px!important;min-height:154px!important}.arc-card:after{width:96px!important}.day-header{padding-right:118px!important;min-height:170px!important}.day-header:before{width:118px!important}.sport-quest{padding-right:108px!important}.sport-quest:after{width:96px!important}.sensei-hero{padding:22px 22px!important;min-height:220px!important}.sensei-hero:before{width:100%!important;inset:0!important}}
 @media(max-width:390px){.arc-card,.day-header,.sport-quest{padding-right:18px!important;padding-top:240px!important}.arc-card:after,.day-header:before,.sport-quest:after{top:0!important;left:0!important;right:0!important;width:100%!important;height:240px!important;border-left:0!important;border-bottom:1px solid var(--gm-line)!important;background-position:center 28%!important}.sensei-hero{padding:0 18px 18px!important;min-height:260px!important;align-items:flex-end!important}.sensei-hero:before{inset:0!important;width:100%!important;height:100%!important;border-left:0!important;border-bottom:0!important}}
 /* Compact mobile density pass -- native-app-sized cards instead of oversized hero bands */
@@ -1850,10 +1861,22 @@ async function handleUpdatePassword(newPw, confirmPw){
 }
 
 async function handleSignOut(){
+  // Sensei chat history is intentionally not carried across sessions --
+  // deleting it here (rather than merely not loading it) means a
+  // partially-loaded local coachMessages array can't leak into a new
+  // session either, and the person genuinely starts fresh next sign-in.
+  // Best-effort: a failed delete shouldn't block sign-out itself, since
+  // being unable to clear old chat history is far less disruptive than
+  // being stuck signed in.
+  if(currentUser){
+    try{ await sb.from('coach_messages').delete().eq('user_id', currentUser.id); }
+    catch(e){ console.warn('Could not clear coach history on sign-out:', e.message); }
+  }
   await sb.auth.signOut();
   currentUser = null; profile = null; plan = null;
   applyPersonaTheme('male');
   trackerState = {}; trackerHistory = []; weightLog = [];
+  coachMessages = []; coachHistoryLoaded = false;
   APP_STATE = 'signin';
   render();
 }
@@ -2642,6 +2665,17 @@ function getUpNextDay(){
   const firstNonEmpty = plan.days.find(d=>d.exercises.length>0);
   return firstNonEmpty ? firstNonEmpty.day : plan.days[0].day;
 }
+// Distinct from getUpNextDay() above: that one always returns a real day
+// (it's used to pick which day opens by default), so once the whole week is
+// done it falls back to day one -- fine for "which day to show," but wrong
+// for the "Up Next" badge specifically, since relabeling an
+// already-completed day "Up Next" is actively misleading rather than a
+// harmless reuse of the same fallback. This returns null in that case, and
+// every "Up Next" badge/pill naturally renders nothing when it does.
+function getUpNextBadgeDay(){
+  for(const d of plan.days){ if(d.exercises.length>0 && dayProgress(d.day).pct < 1) return d.day; }
+  return null;
+}
 function getWeekId(d){
   const day = d.getDay();
   const diffToMonday = (day+6)%7;
@@ -3226,7 +3260,7 @@ function renderDashboard(){
   const weekPct = exTotal ? doneTotal/exTotal : 0;
 
   const d = plan.days.find(x=>x.day===activeDay);
-  const upNext = getUpNextDay();
+  const upNext = getUpNextBadgeDay();
   const {done, total, pct:dayPct} = dayProgress(d.day);
   const dayIdx = plan.days.findIndex(x=>x.day===activeDay);
 
@@ -3465,13 +3499,20 @@ function renderDashboard(){
     const setLogs = Array.isArray(s.setLogs) ? s.setLogs : [];
     const isDone = isExerciseDone(ex, s);
     const confirmingDelete = deleteConfirmExId === ex.id;
-    const isWeighted = ex.unit !== 'bodyweight';
+    // Only genuinely weighted exercises (lbs / lbs ea) get per-set weight+reps
+    // capture and warm-up suggestions. Bodyweight has no numeric weight, and
+    // cardio's own "weight" field is a duration string, not a number -- both
+    // used to slip through the old "!== 'bodyweight'" check and end up with
+    // meaningless set-log inputs (a cardio exercise showing "lbs" as its
+    // logged weight and a duration number as its logged reps).
+    const isWeighted = ex.unit === 'lbs' || ex.unit === 'lbs ea';
     const warmupSets = isWeighted ? computeWarmupSets(ex) : [];
     const warmupChecked = (Array.isArray(s.warmupChecked) && s.warmupChecked.length===warmupSets.length) ? s.warmupChecked : new Array(warmupSets.length).fill(false);
     const warmupLogs = Array.isArray(s.warmupLogs) ? s.warmupLogs : [];
     const checkSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="#0A0A0C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
     const setsSectionHtml = isWeighted ? `
             <div class="set-log-list">
+              <div class="set-log-header"><span class="set-log-header-spacer"></span><span class="set-log-header-weight">Weight</span><span class="set-log-header-gap"></span><span class="set-log-header-reps">Reps</span></div>
               ${warmupSets.map((w,i)=>{
                 const wl = warmupLogs[i] || {};
                 const wWeight = wl.weight!==undefined ? wl.weight : w.weight;
@@ -3483,6 +3524,7 @@ function renderDashboard(){
                 </div>
                 <span class="set-log-label">${escapeHtml(w.label)}</span>
                 <input class="set-log-input" type="number" inputmode="decimal" step="any" data-warmup-weight="${ex.id}|${i}" value="${escapeHtml(String(wWeight))}" placeholder="lbs" aria-label="${escapeHtml(w.label)} weight">
+                <span class="set-log-unit">lbs</span>
                 <span class="set-log-x">×</span>
                 <input class="set-log-input reps" type="number" inputmode="numeric" data-warmup-reps="${ex.id}|${i}" value="${escapeHtml(String(wReps))}" placeholder="reps" aria-label="${escapeHtml(w.label)} reps">
               </div>`;}).join('')}
@@ -3497,6 +3539,7 @@ function renderDashboard(){
                 </div>
                 <span class="set-log-label">Set ${i+1}</span>
                 <input class="set-log-input" type="number" inputmode="decimal" step="any" data-log-weight="${ex.id}|${i}" value="${escapeHtml(String(logWeight))}" placeholder="lbs" aria-label="Set ${i+1} weight">
+                <span class="set-log-unit">lbs</span>
                 <span class="set-log-x">×</span>
                 <input class="set-log-input reps" type="number" inputmode="numeric" data-log-reps="${ex.id}|${i}" value="${escapeHtml(String(logReps))}" placeholder="reps" aria-label="Set ${i+1} reps">
               </div>`;}).join('')}
