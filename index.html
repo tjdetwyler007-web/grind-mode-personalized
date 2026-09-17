@@ -1145,6 +1145,24 @@ html[data-avatar-theme="female"]{--on-photo-gold:#ff2f8b!important}
    itself (.app-topbar-greeting) -- this static, non-personalized banner
    text would otherwise double up alongside it. */
 .app-topbar:before{content:none!important}
+/* The female topbar is forced to a white background regardless of the
+   light/dark toggle (see the "true white/pink UI" rule above), but --ink
+   still follows that toggle independently -- in dark mode this left the
+   greeting rendering near-white text on that same white bar, unreadable.
+   Pinned to a dark color specifically for female theme's topbar, matching
+   the dark text every other element on that white bar already uses. */
+html[data-avatar-theme="female"] .app-topbar-greeting{color:#1b1519!important}
+/* In-app branding for male theme now uses the real logo artwork (matching
+   the sign-in page) instead of styled text -- female theme keeps its
+   existing pink text-based wordmark, since the logo artwork is gold-only
+   and would clash with the pink persona system rather than fit it. Visually
+   hidden text inside stays for accessibility, same technique as the
+   sign-in logo. */
+.gm-brand-logo{position:relative!important;background-image:var(--gm-logo-mark)!important;background-size:contain!important;background-repeat:no-repeat!important;background-position:left center!important;aspect-ratio:700/392!important;font-size:0!important;text-shadow:none!important;letter-spacing:normal!important}
+.gm-brand-logo span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+.gm-brand.gm-brand-logo{width:150px!important;margin-bottom:2px!important}
+.gm-v7-brand.gm-brand-logo{width:190px!important;background-position:center!important}
+@media(min-width:900px){.gm-v7-brand.gm-brand-logo{width:230px!important}}
 /* Boss Battle card art -- same proven side-strip/full-bleed pattern as
    arc-card/day-header/sport-quest (theme-conditional image, no border-radius
    leftovers, face-safe crop at every breakpoint including desktop, where an
@@ -1269,7 +1287,7 @@ function recoveryChecklistHtml(){
   </div>`;
 }
 function renderMorePage(m, macros){
-  return `<div class="manga-page-title">More</div><div class="account-card"><div class="acct-card-title">Recovery</div><div class="account-row"><span>Today</span><b>${todayRecoveryLevel()||'Not logged'}</b></div><div class="account-row"><span>Streak</span><b>${streakWeeks} weeks</b></div><div class="account-row"><span>Character rank</span><b>${m.rank}</b></div><button class="btn-secondary" id="moreAccountBtn" style="margin-top:12px;">Profile & Settings</button></div>${recoveryChecklistHtml()}`;
+  return `<div class="manga-page-title">Recovery</div>${recoveryChecklistHtml()}<button class="btn-secondary" id="moreAccountBtn" style="margin-top:2px;width:100%;">Profile & Settings</button>`;
 }
 
 /* Capture the URL hash BEFORE supabase-js parses/clears it, so we can tell
@@ -3541,13 +3559,14 @@ function renderDashboard(){
   root().innerHTML = `
     <div class="gm-desktop-shell">
     <aside class="gm-sidebar">
-      <div class="gm-brand">GRIND<br>MODE</div><div class="gm-brand-sub">DISCIPLINE BUILDS FREEDOM.</div>
+      ${profile.sex==='female' ? `<div class="gm-brand">GRIND<br>MODE</div>` : `<div class="gm-brand gm-brand-logo" role="img" aria-label="Grind Mode"><span>GRIND MODE</span></div>`}
+      <div class="gm-brand-sub">DISCIPLINE BUILDS FREEDOM.</div>
       <button class="gm-side-btn ${dashboardPage==='overview'?'active':''}" data-side-page="overview"><span>⌂</span>Home</button>
       <button class="gm-side-btn ${dashboardPage==='workout'?'active':''}" data-side-page="workout"><span>◫</span>Workouts</button>
       <button class="gm-side-btn ${dashboardPage==='sports'?'active':''}" data-side-page="sports"><span>◎</span>Sports</button>
       <button class="gm-side-btn ${dashboardPage==='arc'?'active':''}" data-side-page="arc"><span>◇</span>Training Arc</button>
       <button class="gm-side-btn ${dashboardPage==='progress'?'active':''}" data-side-page="progress"><span>▥</span>Progress</button>
-      <button class="gm-side-btn ${dashboardPage==='more'?'active':''}" data-side-page="more"><span>☰</span>More</button>
+      <button class="gm-side-btn ${dashboardPage==='more'?'active':''}" data-side-page="more"><span>☰</span>Recovery</button>
       <button class="gm-side-btn" data-side-page="sensei"><span>✦</span>Sensei</button>
       <div class="gm-side-spacer"></div><div class="gm-side-art"></div>
       <button class="gm-logout" id="gmSideLogout">↪ &nbsp; Log Out</button>
@@ -3567,7 +3586,7 @@ function renderDashboard(){
 
     <section class="gm-v7-hero">
       <div class="gm-v7-hero-copy">
-        <div class="gm-v7-brand">GRIND<br>MODE</div>
+        ${profile.sex==='female' ? `<div class="gm-v7-brand">GRIND<br>MODE</div>` : `<div class="gm-v7-brand gm-brand-logo" role="img" aria-label="Grind Mode"><span>GRIND MODE</span></div>`}
         <div class="gm-v7-mantra">DISCIPLINE BUILDS FREEDOM.</div>
         <div class="gm-v7-plan">${SPLIT_LABEL[profile.days_per_week]}</div>
         <div class="gm-v7-sub">${goalsLabel(profile.goals)}${streakWeeks>0 ? ` · ${streakWeeks}-week streak` : ''}</div>
@@ -3595,7 +3614,7 @@ function renderDashboard(){
       <button class="bottom-tab ${dashboardPage==='sports'?'active':''}" data-page="sports"><span class="bt-icon">◎</span>SPORTS</button>
       <button class="bottom-tab ${dashboardPage==='arc'?'active':''}" data-page="arc"><span class="bt-icon">◇</span>ARC</button>
       <button class="bottom-tab ${dashboardPage==='progress'?'active':''}" data-page="progress"><span class="bt-icon">▥</span>PROGRESS</button>
-      <button class="bottom-tab ${dashboardPage==='more'?'active':''}" data-page="more"><span class="bt-icon">☰</span>MORE</button>
+      <button class="bottom-tab ${dashboardPage==='more'?'active':''}" data-page="more"><span class="bt-icon">☰</span>RECOVERY</button>
       <button class="bottom-tab" data-page="sensei"><span class="bt-icon">✦</span>SENSEI</button>
     </div>
     </main></div>
