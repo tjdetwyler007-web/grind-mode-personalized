@@ -619,12 +619,31 @@
   .hero-nav{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; position:relative; z-index:1;}
   .hero-nav-group{display:flex; gap:8px;}
   .icon-btn{
+    position:relative;
     width:34px; height:34px; border-radius:50%; border:1.5px solid var(--line); background:rgba(127,127,127,0.08);
     display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
     transition:border-color .15s ease, transform .15s ease;
   }
   .icon-btn:active{transform:scale(0.9);}
   .icon-btn svg{width:16px; height:16px; stroke:var(--on-photo-gold);}
+
+  /* --- Inbox (system-message notifications) --- */
+  .inbox-badge{position:absolute; top:-3px; right:-3px; min-width:16px; height:16px; padding:0 4px; border-radius:9px; background:var(--bad); color:#fff; font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:800; line-height:16px; text-align:center; box-shadow:0 0 0 2px var(--bg);}
+  .inbox-overlay{position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,0.6); display:flex; align-items:flex-end; justify-content:center; padding:0;}
+  .inbox-panel{background:var(--card); border:1.5px solid var(--line); border-top-left-radius:18px; border-top-right-radius:18px; width:100%; max-width:440px; max-height:78vh; overflow-y:auto; padding:16px 16px 20px; color:var(--ink);}
+  @media(min-width:640px){ .inbox-overlay{align-items:center;} .inbox-panel{border-radius:18px; max-height:70vh;} }
+  .inbox-panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .inbox-panel-title{font-family:'Bungee',sans-serif; font-size:14px; color:var(--gold); letter-spacing:0.3px;}
+  .inbox-msg-list{display:flex; flex-direction:column; gap:2px;}
+  .inbox-msg{display:flex; gap:10px; align-items:flex-start; padding:11px 2px; border-bottom:1px dashed var(--line);}
+  .inbox-msg:last-child{border-bottom:none;}
+  .inbox-msg-dot{width:8px; height:8px; border-radius:50%; background:var(--gold); flex-shrink:0; margin-top:5px;}
+  .inbox-msg.is-read .inbox-msg-dot{background:transparent;}
+  .inbox-msg-body{flex:1; min-width:0;}
+  .inbox-msg-title{font-size:12.5px; font-weight:800; color:var(--ink); margin-bottom:2px;}
+  .inbox-msg-text{font-size:12px; color:var(--muted); line-height:1.45;}
+  .inbox-msg-meta{font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px; margin-top:4px; font-family:'JetBrains Mono',monospace;}
+  .inbox-empty{padding:26px 4px; text-align:center; color:var(--muted); font-size:13px;}
   .hero-main{display:flex; align-items:center; justify-content:space-between; gap:14px; position:relative; z-index:1;}
   .hero-logo{
     font-family:'Bungee',sans-serif; font-size:29px; letter-spacing:0.5px; line-height:0.92; color:var(--on-photo-gold);
@@ -1941,12 +1960,115 @@ let exerciseHistory = {}; // {[exerciseId]: [true, false, ...]} -- one entry per
 // every week rollover.
 let dayCompletionLog = {};
 function bumpDayActivity(){
-  const today = new Date().toISOString().slice(0,10);
+  const today = todayISO();
   dayCompletionLog[today] = (dayCompletionLog[today]||0) + 1;
 }
 let pendingStreakToast = null;
 let pendingProgressionToast = null;
 let pendingRecoveryToast = null;
+// Persisted, per-profile history of system-generated notifications (signup,
+// plan changes, workout/streak milestones) -- distinct from the ephemeral
+// toasts/manga-bursts above, which only ever appear while the person is
+// actively in the app. This is what lets someone who was away for a week
+// come back and still see what happened, via the inbox icon in the topbar.
+let inboxMessages = [];
+function unreadInboxCount(){ return inboxMessages.filter(m=>!m.read).length; }
+async function loadInboxMessages(){
+  try{
+    const {data, error} = await sb.from('inbox_messages').select('*').eq('user_id', currentUser.id).order('created_at', {ascending:false});
+    if(error) throw error;
+    inboxMessages = data || [];
+  }catch(e){
+    console.warn('Could not load inbox messages:', e.message);
+    inboxMessages = [];
+  }
+}
+// Fire-and-forget, same pattern as saveCoachMessage -- a notification failing
+// to save should never block or roll back the real action (onboarding, a
+// plan edit, a completed workout) that triggered it.
+async function addInboxMessage(type, title, body){
+  const row = {
+    id: 'inbox_'+Date.now()+'_'+Math.random().toString(36).slice(2),
+    user_id: currentUser.id, type, title, body, read: false,
+    created_at: new Date().toISOString(),
+  };
+  inboxMessages = [row, ...inboxMessages];
+  try{
+    const {error} = await sb.from('inbox_messages').insert(row);
+    if(error) console.warn('Could not save inbox message:', error.message);
+  }catch(e){ console.warn('Could not save inbox message:', e.message); }
+  refreshInboxBadges();
+}
+function refreshInboxBadges(){
+  document.querySelectorAll('[data-inbox-badge]').forEach(el=>{
+    const n = unreadInboxCount();
+    el.textContent = n>9 ? '9+' : String(n);
+    el.style.display = n>0 ? 'flex' : 'none';
+  });
+}
+async function markInboxRead(){
+  const unread = inboxMessages.filter(m=>!m.read);
+  if(unread.length===0) return;
+  inboxMessages = inboxMessages.map(m=> m.read ? m : {...m, read:true});
+  refreshInboxBadges();
+  try{
+    const {error} = await sb.from('inbox_messages').update({read:true}).eq('user_id', currentUser.id).eq('read', false);
+    if(error) console.warn('Could not mark inbox read:', error.message);
+  }catch(e){ console.warn('Could not mark inbox read:', e.message); }
+}
+function inboxTypeLabel(type){
+  return {registration:'Welcome', plan:'Plan Update', workout:'Workout', streak:'Streak', sport:'Sport'}[type] || 'Notice';
+}
+function formatInboxTime(iso){
+  try{ return new Date(iso).toLocaleDateString(undefined, {month:'short', day:'numeric'}) + ' · ' + new Date(iso).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}); }
+  catch(e){ return ''; }
+}
+function inboxBellHtml(){
+  const n = unreadInboxCount();
+  return `<button class="icon-btn" id="inboxLink" title="Inbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+      <span class="inbox-badge" data-inbox-badge style="display:${n>0?'flex':'none'};align-items:center;justify-content:center;">${n>9?'9+':n}</span>
+    </button>`;
+}
+function wireInboxBell(){
+  const btn = document.getElementById('inboxLink');
+  if(btn) btn.onclick = openInboxModal;
+}
+function openInboxModal(){
+  if(document.querySelector('.inbox-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'inbox-overlay';
+  const sorted = inboxMessages; // already newest-first from load order / unshift on add
+  overlay.innerHTML = `
+    <div class="inbox-panel">
+      <div class="inbox-panel-head">
+        <div class="inbox-panel-title">📥 INBOX</div>
+        <button class="icon-btn" id="inboxCloseBtn" title="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      ${sorted.length===0 ? `<div class="inbox-empty">No messages yet. Complete a workout or update your plan and updates will show up here.</div>` : `
+      <div class="inbox-msg-list">
+        ${sorted.map(m=>`
+          <div class="inbox-msg ${m.read?'is-read':''}">
+            <div class="inbox-msg-dot"></div>
+            <div class="inbox-msg-body">
+              <div class="inbox-msg-title">${escapeHtml(m.title)}</div>
+              <div class="inbox-msg-text">${escapeHtml(m.body)}</div>
+              <div class="inbox-msg-meta">${inboxTypeLabel(m.type)} · ${formatInboxTime(m.created_at)}</div>
+            </div>
+          </div>`).join('')}
+      </div>`}
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = ()=>{ overlay.remove(); };
+  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
+  overlay.querySelector('#inboxCloseBtn').onclick = close;
+  // Opening the inbox is itself the "read" action -- every message visible
+  // here just got seen, so the unread badge should clear immediately rather
+  // than requiring a tap on each individual message.
+  markInboxRead();
+}
 let qIndex = 0, qAnswers = {};
 // Conversational alternative to the tap-through questionnaire above --
 // produces the exact same qAnswers shape at the end, so finalizeOnboarding()
@@ -2064,6 +2186,7 @@ async function handleSignOut(){
   applyPersonaTheme('male');
   trackerState = {}; trackerHistory = []; weightLog = [];
   coachMessages = []; coachHistoryLoaded = false;
+  inboxMessages = [];
   APP_STATE = 'signin';
   render();
 }
@@ -2102,6 +2225,11 @@ async function loadProfileAndData(isRetry){
     dayCompletionLog = tracker.dayCompletionLog || {};
     if(migrateTrackerState()) silentSave();
     activeDay = getUpNextDay();
+    // Loaded before handleWeekRollover(), which may itself add a new streak-
+    // milestone inbox message -- that way the message it adds is appended on
+    // top of the real loaded history instead of racing the fetch and
+    // possibly getting silently overwritten by it.
+    await loadInboxMessages();
     handleWeekRollover();
     APP_STATE = 'dashboard';
     render();
@@ -2209,6 +2337,7 @@ async function confirmDeleteData(){
     await sb.auth.signOut();
     currentUser = null; profile = null; plan = null;
     trackerState = {}; trackerHistory = []; weightLog = [];
+    inboxMessages = [];
     APP_STATE = 'signin';
     render();
   }catch(e){
@@ -2229,6 +2358,7 @@ async function confirmPermanentDelete(){
     await sb.auth.signOut();
     currentUser = null; profile = null; plan = null;
     trackerState = {}; trackerHistory = []; weightLog = [];
+    inboxMessages = [];
     APP_STATE = 'signin';
     render();
     showToast('Your account has been permanently deleted.');
@@ -2776,12 +2906,17 @@ async function finalizeOnboarding(){
     plan = newPlan;
     trackerState = {}; trackerHistory = [];
     weightLog = [{date: todayISO(), weight: qAnswers.currentWeight}];
-    if(!isRetake){ streakWeeks = 0; streakFreezes = 2; lastFreezeRefillMonth = new Date().toISOString().slice(0,7); }
+    if(!isRetake){ streakWeeks = 0; streakFreezes = 2; lastFreezeRefillMonth = todayISO().slice(0,7); }
     const {error: dataErr} = await sb.from('user_data').upsert({id: currentUser.id, plan, tracker:{state:trackerState, history:trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog:[], exerciseHistory:{}, dayCompletionLog}, updated_at:new Date().toISOString()});
     if(dataErr) throw dataErr;
     activeDay = 1;
     APP_STATE = 'dashboard';
     render();
+    if(!isRetake){
+      addInboxMessage('registration', 'Welcome to Grind Mode!', `Your ${SPLIT_LABEL[profile.days_per_week]||profile.days_per_week} plan is built and ready. Let's get to work.`);
+    } else {
+      addInboxMessage('plan', 'Your plan was updated', `New goals, equipment, or schedule -- your plan has been regenerated to match.`);
+    }
   }catch(e){
     showError('Could not save your plan: ' + e.message);
     if(btn){ btn.disabled = false; btn.textContent = 'Build My Plan'; }
@@ -2855,6 +2990,7 @@ async function addSportToPlan(sportName){
     if(profErr) throw profErr;
     const {error: dataErr} = await sb.from('user_data').upsert({id: currentUser.id, plan, tracker:{state:trackerState, history:trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog, exerciseHistory, dayCompletionLog}, updated_at:new Date().toISOString()});
     if(dataErr) throw dataErr;
+    addInboxMessage('sport', 'Sport added', `${trimmed} is now part of your training -- your conditioning work has been updated.`);
   }catch(e){
     profile.sport = previousSport;
     plan = previousPlanSnapshot;
@@ -3047,7 +3183,7 @@ function handleWeekRollover(){
   // Freezes refill once per calendar month, independent of whether a
   // tracker week has actually rolled over yet (someone could open the app
   // mid-month with no week boundary crossed and still be due a refill).
-  const thisMonth = new Date().toISOString().slice(0,7);
+  const thisMonth = todayISO().slice(0,7);
   if(lastFreezeRefillMonth !== thisMonth){
     if(lastFreezeRefillMonth !== null) streakFreezes = Math.min(2, streakFreezes + 1);
     lastFreezeRefillMonth = thisMonth;
@@ -3068,6 +3204,7 @@ function handleWeekRollover(){
     if(stats.total>0){
       if(wasGoodWeek){
         streakWeeks += 1;
+        addInboxMessage('streak', `${streakWeeks}-week streak!`, `You completed every workout last week -- that's ${streakWeeks} week${streakWeeks===1?'':'s'} in a row.`);
       } else if(streakFreezes>0){
         streakFreezes -= 1;
         frozen = true;
@@ -3143,7 +3280,7 @@ function renderHeatmapSvg(log){
   const cells = [];
   for(let i=totalDays-1; i>=0; i--){
     const d = new Date(today); d.setDate(d.getDate()-i);
-    const dateStr = d.toISOString().slice(0,10);
+    const dateStr = todayISOFrom(d);
     cells.push({date: dateStr, count: log[dateStr]||0, dow: d.getDay()});
   }
   // Pad the front so the grid starts on a Sunday -- keeps columns as clean,
@@ -3222,6 +3359,15 @@ async function logRecovery(level){
 
 let toggleSaveTimer = null;
 let toggleSaveSnapshot = null; // trackerState right before the current pending batch, for rollback if the save fails
+// Shared by toggleSet/toggleAllSets -- both flip individual checkboxes but
+// represent the same underlying event ("this workout day just got fully
+// checked off"), so it should only ever produce one inbox notification per
+// transition, not a second parallel implementation of the same check.
+function notifyIfDayJustCompleted(day, wasDayComplete, nowDayComplete){
+  if(wasDayComplete || !nowDayComplete) return;
+  const dayObj = plan.days.find(d=>d.day===day);
+  addInboxMessage('workout', 'Workout complete!', `You finished ${dayObj ? (dayObj.title||('Day '+day)) : 'Day '+day} -- nice work.`);
+}
 function toggleSet(day, exId, idx, total){
   const key = trackerKey(day, exId);
   if(toggleSaveSnapshot === null) toggleSaveSnapshot = JSON.parse(JSON.stringify(trackerState));
@@ -3256,6 +3402,7 @@ function toggleSet(day, exId, idx, total){
   } else if(!wasDayComplete && nowDayComplete){
     showMangaBurst(DAY_COMPLETE_PHRASES[Math.floor(Math.random()*DAY_COMPLETE_PHRASES.length)]);
   }
+  notifyIfDayJustCompleted(day, wasDayComplete, nowDayComplete);
   clearTimeout(toggleSaveTimer);
   toggleSaveTimer = setTimeout(async ()=>{
     const snapshot = toggleSaveSnapshot;
@@ -3342,6 +3489,7 @@ function toggleAllSets(day, exId, total){
   } else if(!wasDayComplete && nowDayComplete){
     showMangaBurst(DAY_COMPLETE_PHRASES[Math.floor(Math.random()*DAY_COMPLETE_PHRASES.length)]);
   }
+  notifyIfDayJustCompleted(day, wasDayComplete, nowDayComplete);
   clearTimeout(toggleSaveTimer);
   toggleSaveTimer = setTimeout(async ()=>{
     const snapshot = toggleSaveSnapshot;
@@ -3690,6 +3838,7 @@ function renderDashboard(){
     <div class="app-topbar">
       <span class="app-topbar-greeting">${profile.username ? `Welcome back, ${escapeHtml(profile.username)}` : 'Welcome back'}</span>
       <div class="hero-nav-group">
+        ${inboxBellHtml()}
         <button class="icon-btn" id="accountLink" title="Account">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </button>
@@ -3973,6 +4122,7 @@ function renderDashboard(){
   if(themeToggleBtn) themeToggleBtn.onclick = toggleTheme;
   const signOutLink = document.getElementById('signOutLink');
   if(signOutLink) signOutLink.onclick = handleSignOut;
+  wireInboxBell();
   const openCoachChatBtn = document.getElementById('openCoachChat');
   if(openCoachChatBtn) openCoachChatBtn.onclick = openCoachChat;
   const sportSenseiBtn = document.getElementById('sportSenseiBtn');
@@ -4137,6 +4287,7 @@ function renderAccount(){
       <button class="icon-btn" id="backToDash" title="Back">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
       </button>
+      ${inboxBellHtml()}
       <button class="icon-btn" id="themeToggleBtn" title="Theme">${themeToggleSvg()}</button>
       <button class="icon-btn" id="signOutLink" title="Sign Out">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -4195,6 +4346,7 @@ function renderAccount(){
   document.getElementById('backToDash').onclick = ()=>{ APP_STATE='dashboard'; render(); };
   document.getElementById('themeToggleBtn').onclick = toggleTheme;
   document.getElementById('signOutLink').onclick = handleSignOut;
+  wireInboxBell();
   document.getElementById('editUsernameBtn').onclick = ()=>{
     document.getElementById('usernameEditArea').innerHTML = `
       <div class="add-ex-row">
