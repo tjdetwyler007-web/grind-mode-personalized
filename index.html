@@ -1172,6 +1172,19 @@ html[data-theme="dark"] .ex-acc-progress.complete{color:var(--good)}
 .ex-acc-body[hidden]{display:none!important}
 .ex-acc-body{margin-top:8px}
 .rep-hints:empty{display:none}
+.edits-scroll{max-height:50vh;overflow:auto;margin:0 -4px;padding:0 4px}
+.edits-sec h4{font:700 11px/1 'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--gm-accent,var(--gold));margin:10px 0 4px}
+.edits-row{padding:7px 0;border-bottom:1px solid var(--gm-line,var(--line));font-size:12.5px;line-height:1.4;color:var(--gm-text,var(--ink));overflow-wrap:anywhere}
+.edits-row b{font-weight:700}
+.edits-day{display:inline-block;margin-left:6px;font:600 10.5px/1 'JetBrains Mono',monospace;color:var(--gm-muted,var(--muted))}
+.edits-change,.edits-why,.edits-gone,.edits-arrow{display:block;margin-top:2px;font-size:12px}
+.edits-why{font-style:italic;color:var(--gm-muted,var(--muted))}
+.edits-gone{color:#c0392b}
+.edits-arrow{font:600 10px/1 'JetBrains Mono',monospace;color:var(--gm-muted,var(--muted));text-transform:uppercase;margin:4px 0}
+.edits-actions{display:flex;gap:8px}
+.edits-actions button{flex:1}
+.chat-ready-card .edits-decline{background:transparent;border:1.5px solid var(--gm-line,var(--line));color:var(--gm-muted,var(--muted))}
+.edits-actions button:disabled{opacity:.6}
 .coach-header-actions{display:flex;align-items:center;gap:8px}
 .coach-clear-btn,.coach-clear-confirm button{appearance:none;border:1px solid var(--gm-line,var(--line));background:transparent;color:var(--gm-muted,var(--muted));font:600 11px/1 'JetBrains Mono',monospace;padding:7px 10px;border-radius:999px;cursor:pointer}
 .coach-clear-confirm{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:10px 12px;border:1px solid var(--gm-line,var(--line));border-radius:12px;font:600 12px/1.3 'JetBrains Mono',monospace;color:var(--gm-text,var(--ink))}
@@ -1969,8 +1982,9 @@ let coachMessages = [], coachSending = false, coachError = null, coachPlanPropos
 // The in-memory conversation also persists across tab switches within a session.
 const COACH_HISTORY_HOURS = 12;
 const COACH_SEND_CAP = 30; // most recent messages handed to plan-chat (the UI shows the whole window)
+let coachEditsProposal = null, coachApplying = false;
 let coachEpoch = 0, coachHistoryLoaded = false, coachHistoryLoading = false, coachClearConfirm = false;
-function resetCoachState(){ coachEpoch++; coachMessages = []; coachSending = false; coachError = null; coachPlanProposal = null; coachExercisesProposal = null; coachHistoryLoaded = false; coachHistoryLoading = false; coachClearConfirm = false; }
+function resetCoachState(){ coachEpoch++; coachMessages = []; coachSending = false; coachError = null; coachPlanProposal = null; coachExercisesProposal = null; coachEditsProposal = null; coachApplying = false; coachHistoryLoaded = false; coachHistoryLoading = false; coachClearConfirm = false; }
 let activeDay = 1;
 let pendingEmail = '';
 let saveStatus = 'idle', lastSavedAt = null;
@@ -2540,7 +2554,7 @@ async function buildPlanFromChat(){
 function openCoachChat(){
   // Messages from this session are kept across tab switches; the stored last-12h history is loaded once per session.
   APP_STATE = 'coach';
-  coachSending = false; coachError = null; coachPlanProposal = null; coachExercisesProposal = null; coachClearConfirm = false;
+  coachSending = false; coachError = null; coachPlanProposal = null; coachExercisesProposal = null; coachEditsProposal = null; coachClearConfirm = false;
   render();
   if(!coachHistoryLoaded && !coachHistoryLoading) loadCoachHistory();
 }
@@ -2597,7 +2611,7 @@ async function clearCoachChat(){
   try{
     const {error} = await sb.from('coach_messages').delete().eq('user_id', currentUser.id);
     if(error) throw error;
-    coachMessages = []; coachPlanProposal = null; coachExercisesProposal = null; coachError = null; coachHistoryLoaded = true;
+    coachMessages = []; coachPlanProposal = null; coachExercisesProposal = null; coachEditsProposal = null; coachError = null; coachHistoryLoaded = true;
   }catch(e){
     console.warn('Could not clear coach chat:', e && e.message);
     coachError = "Couldn't clear the chat. Please try again.";
@@ -2640,7 +2654,7 @@ function renderCoach(){
           <div class="chat-ready-row"><span>Days per week</span><b>${coachPlanProposal.days !== undefined ? coachPlanProposal.days : profile.days_per_week}</b></div>
           <button id="applyCoachProposal">Update My Plan</button>
         </div>
-      ` : coachExercisesProposal ? `
+      ` : coachEditsProposal ? coachEditsCardHtml(coachEditsProposal) : coachExercisesProposal ? `
         <div class="chat-ready-card">
           <h3>Sensei recommends adding these</h3>
           <div class="chat-ready-row"><span>Target day</span><b>${escapeHtml((plan.days.find(d=>d.day===coachExercisesProposal.day)||{}).title || ('Day '+coachExercisesProposal.day))}</b></div>
@@ -2678,6 +2692,9 @@ function renderCoach(){
   const clrNo = document.getElementById('coachClearNo'); if(clrNo) clrNo.onclick = ()=>{ coachClearConfirm = false; renderCoach(); };
   if(coachPlanProposal){
     document.getElementById('applyCoachProposal').onclick = applyCoachPlanProposal;
+  } else if(coachEditsProposal){
+    document.getElementById('applyCoachEdits').onclick = applyCoachEditsProposal;
+    document.getElementById('declineCoachEdits').onclick = declineCoachEditsProposal;
   } else if(coachExercisesProposal){
     document.getElementById('applyCoachExercises').onclick = applyCoachExercisesProposal;
   } else {
@@ -2724,7 +2741,7 @@ function coachContext(){
     // So the coach can correctly say "I'll add that to day 3" and actually
     // mean the right day, rather than guessing a number with no idea what
     // it corresponds to.
-    currentPlanDays: plan.days.map(d => ({day: d.day, title: d.title, split: d.split, exerciseCount: d.exercises.length})),
+    currentPlanDays: plan.days.map(d => ({day: d.day, title: d.title, exercises: d.exercises.map(e => ({id: e.id, name: e.name, sets: e.sets, reps: e.reps, weight: e.weight, unit: e.unit, muscle: muscleKeyFromTag(e.tag)}))})),
   };
 }
 
@@ -2741,14 +2758,22 @@ async function sendCoachMessage(text){
     // personalized answers ("you've hit every set this week") instead of
     // generic ones, and lets it propose a PARTIAL update instead of
     // requiring the whole profile to be restated.
-    const data = await invokeFunction('plan-chat', { body: { messages: coachMessages.slice(-COACH_SEND_CAP).map(m=>({role:m.role, content:m.content})), existingProfile: coachContext() } });
+    const data = await invokeFunction('plan-chat', { body: { messages: coachMessages.slice(-COACH_SEND_CAP).filter(m=>!m.local).map(m=>({role:m.role, content:m.content})), existingProfile: coachContext() } });
     if(epoch !== coachEpoch) return; // signed out / new session meanwhile: drop the reply
     if(!data || !data.reply) throw new Error((data && data.error) || 'No reply from the coach');
     const replyAt = new Date().toISOString();
     coachMessages.push({role:'assistant', content:data.reply, at:replyAt});
     saveCoachMessage('assistant', data.reply, replyAt);
+    // A rebuilt plan supersedes any edits/additions in the same reply (they'd be wiped by the rebuild),
+    // so only the plan card is shown then. Otherwise the edits card is reviewed first, then additions.
     if(data.planProposal) coachPlanProposal = data.planProposal;
-    if(data.exercisesProposal) coachExercisesProposal = data.exercisesProposal;
+    else {
+      const ep = data.editsProposal;
+      if(ep && ((ep.edits||[]).length || (ep.swaps||[]).length || (Array.isArray(ep.order) && ep.order.length) || (ep.renames||[]).length)){
+        coachEditsProposal = {edits: ep.edits||[], swaps: ep.swaps||[], order: Array.isArray(ep.order) && ep.order.length ? ep.order : null, renames: ep.renames||[]};
+      }
+      if(data.exercisesProposal) coachExercisesProposal = data.exercisesProposal;
+    }
   }catch(e){
     if(epoch !== coachEpoch) return; // signed out / new session meanwhile
     coachError = "Couldn't reach your coach" + (e && e.message ? ` (${e.message})` : '') + '. You can try again.';
@@ -2756,6 +2781,172 @@ async function sendCoachMessage(text){
   coachSending = false;
   if(APP_STATE==='coach') renderCoach(); // don't repaint over another screen if the person already left Sensei
 }
+
+/* ---------- Sensei plan edits (edit / remove / swap / reorder / rename) ---------- */
+function coachWeightFor(ex, lbs){ return roundToUnit(lbs, (ex.unit||'').startsWith('kg') ? 'kg' : 'lbs'); }
+function coachDayTitle(n){ const d = plan.days.find(x=>x.day===n); return d ? d.title : `Day ${n}`; }
+function coachOrderIsValid(order){
+  const cur = plan.days.map(d=>d.day);
+  return Array.isArray(order) && order.length===cur.length && new Set(order).size===cur.length && order.every(n=>cur.includes(n));
+}
+function coachEditsCardHtml(p){
+  const row = (inner)=>`<div class="edits-row">${inner}</div>`;
+  const why = (r)=> r ? `<span class="edits-why">${escapeHtml(r)}</span>` : '';
+  const gone = '<span class="edits-gone">no longer in your plan - will be skipped</span>';
+  const find = (day, id)=>{ const d = plan.days.find(x=>x.day===day); return d ? d.exercises.find(e=>e.id===id) : null; };
+  let html = '';
+  if((p.edits||[]).length){
+    html += `<div class="edits-sec"><h4>Changes</h4>${p.edits.map(e=>{
+      const ex = find(e.day, e.exerciseId);
+      const name = escapeHtml(e.exerciseName || (ex && ex.name) || 'Exercise');
+      if(!ex) return row(`<b>${name}</b> <span class="edits-day">${escapeHtml(coachDayTitle(e.day))}</span>${gone}`);
+      const parts = [];
+      if(e.sets!==undefined) parts.push(`sets ${ex.sets} → <b>${e.sets}</b>`);
+      if(e.reps!==undefined) parts.push(`reps ${escapeHtml(String(ex.reps))} → <b>${escapeHtml(String(e.reps))}</b>`);
+      if(e.weight!==undefined){
+        if(isWeightedUnit(ex.unit)) parts.push(`weight ${escapeHtml(String(ex.weight))} → <b>${coachWeightFor(ex, e.weight)}</b> ${escapeHtml(ex.unit.replace(' ea',''))}`);
+        else parts.push('weight (not adjustable for this exercise)');
+      }
+      return row(`<b>${name}</b> <span class="edits-day">${escapeHtml(coachDayTitle(e.day))}</span><span class="edits-change">${parts.join(' · ')}</span>${why(e.reason)}`);
+    }).join('')}</div>`;
+  }
+  if((p.swaps||[]).length){
+    html += `<div class="edits-sec"><h4>Swaps &amp; removals</h4>${p.swaps.map(sw=>{
+      const ex = find(sw.day, sw.exerciseId);
+      const name = escapeHtml(sw.exerciseName || (ex && ex.name) || 'Exercise');
+      if(!ex) return row(`<b>${name}</b> <span class="edits-day">${escapeHtml(coachDayTitle(sw.day))}</span>${gone}`);
+      if(!sw.replacement) return row(`<b>Remove</b> ${name} <span class="edits-day">${escapeHtml(coachDayTitle(sw.day))}</span>${why(sw.reason)}`);
+      const r = sw.replacement;
+      const pref = profile.weight_unit==='kg' ? 'kg' : 'lbs';
+      return row(`<b>Swap</b> ${name} → <b>${escapeHtml(r.name)}</b> <span class="edits-day">${escapeHtml(coachDayTitle(sw.day))}</span><span class="edits-change">${r.sets} sets × ${escapeHtml(String(r.reps))}${r.weight ? ` @ ${roundToUnit(r.weight, pref)} ${pref}` : ''}</span>${why(sw.reason)}`);
+    }).join('')}</div>`;
+  }
+  if(p.order){
+    const before = plan.days.map(d=>d.title), valid = coachOrderIsValid(p.order);
+    html += `<div class="edits-sec"><h4>Day order</h4>${valid
+      ? row(`<span class="edits-change">${before.map(escapeHtml).join(' → ')}</span><span class="edits-arrow">becomes</span><span class="edits-change"><b>${p.order.map(n=>escapeHtml(coachDayTitle(n))).join(' → ')}</b></span>`)
+      : row(`${gone.replace('no longer in your plan','your days changed')}`)}</div>`;
+  }
+  if((p.renames||[]).length){
+    html += `<div class="edits-sec"><h4>Renames</h4>${p.renames.map(r=>{
+      const d = plan.days.find(x=>x.day===r.day);
+      return row(d ? `Day ${r.day}: ${escapeHtml(d.title)} → <b>${escapeHtml(r.title)}</b>` : `Day ${r.day} ${gone}`);
+    }).join('')}</div>`;
+  }
+  return `<div class="chat-ready-card edits-card" id="coachEditsCard">
+    <h3>Sensei's plan changes</h3>
+    <div class="edits-scroll">${html}</div>
+    <div class="edits-actions"><button type="button" id="applyCoachEdits" ${coachApplying?'disabled':''}>${coachApplying?'Applying…':'Accept'}</button><button type="button" id="declineCoachEdits" class="edits-decline" ${coachApplying?'disabled':''}>Decline</button></div>
+  </div>`;
+}
+function pushLocalCoachNote(text){ coachMessages.push({role:'assistant', content:text, at:new Date().toISOString(), local:true}); } // display-only: never saved, never sent to the model
+function declineCoachEditsProposal(){
+  if(coachApplying) return;
+  coachEditsProposal = null;
+  pushLocalCoachNote("No problem - I haven't changed anything in your plan.");
+  if(APP_STATE==='coach') renderCoach();
+}
+async function applyCoachEditsProposal(){
+  if(coachApplying || !coachEditsProposal) return;
+  coachApplying = true;
+  const epoch = coachEpoch, p = coachEditsProposal;
+  const snap = {plan: JSON.parse(JSON.stringify(plan)), tracker: JSON.parse(JSON.stringify(trackerState)), rep: JSON.parse(JSON.stringify(repHistory)), day: activeDay, exProp: coachExercisesProposal ? JSON.parse(JSON.stringify(coachExercisesProposal)) : null};
+  if(APP_STATE==='coach') renderCoach(); // disables the buttons right away
+  const skipped = [], applied = [];
+  const findDay = (n)=>plan.days.find(d=>d.day===n);
+  const idStillUsed = (id)=>plan.days.some(d=>d.exercises.some(e=>e.id===id));
+  const pref = profile.weight_unit==='kg' ? 'kg' : 'lbs';
+  // 1) swaps / removals (by the day numbers the proposal was written against)
+  (p.swaps||[]).forEach((sw, i)=>{
+    const d = findDay(sw.day), idx = d ? d.exercises.findIndex(e=>e.id===sw.exerciseId) : -1;
+    const label = sw.exerciseName || 'An exercise';
+    if(idx < 0){ skipped.push(`${label}: no longer in your plan`); return; }
+    const old = d.exercises[idx];
+    let replacementEx = null;
+    if(sw.replacement){
+      const r = sw.replacement;
+      replacementEx = {
+        id: 'coach_'+Date.now()+'_s'+i+'_'+Math.random().toString(36).slice(2,6),
+        name: r.name, tag: MUSCLE_LABEL[r.muscle] || 'Cardio', sets: r.sets, reps: r.reps,
+        weight: r.weight ? String(roundToUnit(r.weight, pref)) : '—', unit: r.weight ? pref : 'bodyweight',
+        muscles: r.targets,
+      };
+      d.exercises.splice(idx, 1, replacementEx);
+    } else d.exercises.splice(idx, 1);
+    delete trackerState[trackerKey(d.day, old.id)];
+    if(!idStillUsed(old.id)){ delete exerciseHistory[old.id]; delete repHistory[old.id]; }
+    applied.push(replacementEx ? `${old.name} → ${replacementEx.name} (${d.title})` : `Removed ${old.name} (${d.title})`);
+  });
+  // 2) edits
+  (p.edits||[]).forEach(e=>{
+    const d = findDay(e.day), ex = d ? d.exercises.find(x=>x.id===e.exerciseId) : null;
+    const label = e.exerciseName || 'An exercise';
+    if(!ex){ skipped.push(`${label}: no longer in your plan`); return; }
+    const bits = [];
+    const prevSets = ex.sets;
+    if(e.sets!==undefined && e.sets!==ex.sets){ ex.sets = e.sets; bits.push(`sets ${prevSets} → ${e.sets}`); }
+    if(e.reps!==undefined && String(e.reps)!==String(ex.reps)){ bits.push(`reps ${ex.reps} → ${e.reps}`); ex.reps = e.reps; }
+    if(e.weight!==undefined){
+      if(isWeightedUnit(ex.unit)){ const nw = String(coachWeightFor(ex, e.weight)); if(nw!==String(ex.weight)){ bits.push(`weight ${ex.weight} → ${nw} ${ex.unit.replace(' ea','')}`); ex.weight = nw; } }
+      else skipped.push(`${label}: weight can't be changed on this exercise`);
+    }
+    if(bits.length===0) return;
+    if(ex.sets !== prevSets) delete trackerState[trackerKey(d.day, ex.id)]; // set count changed: old checkmarks no longer line up
+    delete ex.repTarget; delete ex.lastWeek; delete repHistory[ex.id]; // progression restarts cleanly
+    applied.push(`${ex.name} (${d.title}): ${bits.join(', ')}`);
+  });
+  // 3) renames (still the old day numbers)
+  (p.renames||[]).forEach(r=>{
+    const d = findDay(r.day);
+    if(!d){ skipped.push(`Rename of day ${r.day}: that day no longer exists`); return; }
+    if(d.title!==r.title){ applied.push(`Day ${r.day} renamed: ${d.title} → ${r.title}`); d.title = r.title; }
+  });
+  // 4) reorder LAST, by renumbering days 1..N and migrating everything keyed by day number
+  if(p.order){
+    if(!coachOrderIsValid(p.order)) skipped.push('Day reorder: your days changed since this was proposed');
+    else if(p.order.some((n,i)=>plan.days[i].day!==n)){
+      const map = {}; p.order.forEach((old,i)=>{ map[old] = i+1; });
+      const remap = (k)=>{ const i = k.indexOf('::'); if(i<0) return k; const n = Number(k.slice(0,i)); return map[n]!==undefined ? `${map[n]}${k.slice(i)}` : k; };
+      const newDays = p.order.map(old=>plan.days.find(d=>d.day===old));
+      const nt = {};
+      Object.keys(trackerState).forEach(k=>{
+        if(k==='__stretches'){ const ns = {}; Object.keys(trackerState[k]||{}).forEach(sk=>{ ns[remap(sk)] = trackerState[k][sk]; }); nt[k] = ns; }
+        else if(k==='__meta') nt[k] = trackerState[k];
+        else nt[remap(k)] = trackerState[k];
+      });
+      const titlesBefore = plan.days.map(d=>d.title);
+      newDays.forEach(d=>{ d.day = map[d.day]; });
+      plan.days = newDays;
+      trackerState = nt;
+      activeDay = map[activeDay] || 1;
+      if(coachExercisesProposal && map[coachExercisesProposal.day]) coachExercisesProposal.day = map[coachExercisesProposal.day];
+      exOpen = {};
+      applied.push(`Day order: ${titlesBefore.join(' → ')} became ${plan.days.map(d=>d.title).join(' → ')}`);
+    }
+  }
+  let ok = true;
+  if(applied.length){
+    renderDashboardIfVisible();
+    ok = await saveAll();
+  }
+  if(epoch !== coachEpoch){ coachApplying = false; return; } // signed out / switched user meanwhile: nothing more to touch
+  if(!ok){
+    plan = snap.plan; trackerState = snap.tracker; repHistory = snap.rep; activeDay = snap.day;
+    coachExercisesProposal = snap.exProp; exOpen = {};
+    coachError = "Couldn't save those changes, so nothing was changed. Please try again.";
+  } else {
+    coachEditsProposal = null;
+    if(applied.length){
+      addInboxMessage({type:'plan_change', title:'Sensei edited your plan', body: applied.join('\n') + (skipped.length ? '\nSkipped: ' + skipped.join('; ') : '')});
+      pushLocalCoachNote(`Done - I updated your plan:\n${applied.map(a=>'• '+a).join('\n')}` + (skipped.length ? `\nSkipped (the plan changed since I suggested it):\n${skipped.map(a=>'• '+a).join('\n')}` : ''));
+    } else {
+      pushLocalCoachNote(`Nothing was applied:\n${skipped.map(a=>'• '+a).join('\n') || '• no changes were needed'}`);
+    }
+  }
+  coachApplying = false;
+  if(APP_STATE==='coach') renderCoach();
+}
+function renderDashboardIfVisible(){ /* the plan lives in memory; the dashboard re-renders when the person leaves Sensei */ }
 
 function applyCoachPlanProposal(){
   // Merges whatever the proposal actually changed into the person's current
