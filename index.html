@@ -1243,9 +1243,15 @@ html[data-theme="dark"] .ex-acc-progress.complete{color:var(--good)}
 
 
 /* Round 7: banner only on Home; weekly ring lives on the Workout day card photo */
-.day-header>.gm-v7-ring-wrap.day-ring{position:absolute!important;top:12px;right:12px;margin:0!important;width:68px;height:68px;z-index:3!important;cursor:default;border-radius:50%;background:rgba(8,10,12,.62);box-shadow:0 0 0 1px rgba(255,255,255,.12)}
-.day-header>.gm-v7-ring-wrap.day-ring .gm-v7-ring-pct{font-size:16px;color:#fff!important}
-.day-header>.gm-v7-ring-wrap.day-ring .gm-v7-ring-day{color:#e8e8ea!important;font-size:8px;max-width:58px}
+.day-header .day-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.day-header .day-title-text{flex:1 1 auto;min-width:0}
+.day-header .day-title-text h2{overflow-wrap:anywhere}
+.day-header .gm-v7-ring-wrap.day-ring{position:relative!important;flex:0 0 auto;align-self:center;margin:0!important;width:68px;height:68px;cursor:default;background:none!important;box-shadow:none!important;border-radius:0}
+.day-header .day-ring svg{width:68px;height:68px}
+@media(min-width:701px){.day-header .gm-v7-ring-wrap.day-ring{margin-right:16px!important}}
+.day-header .day-ring .ring-track{stroke:var(--gm-line,rgba(128,128,128,.3))}
+.day-header .day-ring .gm-v7-ring-pct{font-size:17px;color:var(--gm-text)!important}
+.day-header .day-ring .gm-v7-ring-day{color:var(--gm-muted)!important;font-size:8px;max-width:56px}
 #dayHeader{padding-top:12px}
 </style>
 </head>
@@ -4550,17 +4556,21 @@ function renderDashboard(){
     const header = `
     <div class="day-header ${d.split}">
       <div class="day-header-bg"></div>
-      <div class="gm-v7-ring-wrap day-ring" id="dayWeekRing" role="img" aria-label="This week, ${heroWeekPctLabel} percent complete">
-        <svg viewBox="0 0 84 84" width="84" height="84" aria-hidden="true">
-          <circle cx="42" cy="42" r="${heroRadius}" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="7"></circle>
-          <circle cx="42" cy="42" r="${heroRadius}" fill="none" stroke="${heroWeekColor}" stroke-width="7" stroke-linecap="round"
-            stroke-dasharray="${heroCircumference.toFixed(1)}" stroke-dashoffset="${heroWeekOffset.toFixed(1)}" transform="rotate(-90 42 42)"></circle>
-        </svg>
-        <div class="gm-v7-ring-center"><span class="gm-v7-ring-pct" style="color:${heroWeekColor}">${heroWeekPctLabel}%</span><span class="gm-v7-ring-day">This Week</span></div>
+      <div class="day-title-row">
+        <div class="day-title-text">
+          <span class="eyebrow">${isUpNext ? `<span class="today-pill">Up Next</span>`:''}</span>
+          <h2>${escapeHtml(d.title)}</h2>
+          <div class="tagline">${escapeHtml(d.tagline)}</div>
+        </div>
+        <div class="gm-v7-ring-wrap day-ring" id="dayWeekRing" role="img" aria-label="This week, ${heroWeekPctLabel} percent complete">
+          <svg viewBox="0 0 84 84" width="84" height="84" aria-hidden="true">
+            <circle class="ring-track" cx="42" cy="42" r="${heroRadius}" fill="none" stroke-width="7"></circle>
+            <circle cx="42" cy="42" r="${heroRadius}" fill="none" stroke="${heroWeekColor}" stroke-width="7" stroke-linecap="round"
+              stroke-dasharray="${heroCircumference.toFixed(1)}" stroke-dashoffset="${heroWeekOffset.toFixed(1)}" transform="rotate(-90 42 42)"></circle>
+          </svg>
+          <div class="gm-v7-ring-center"><span class="gm-v7-ring-pct">${heroWeekPctLabel}%</span><span class="gm-v7-ring-day">This Week</span></div>
+        </div>
       </div>
-      <span class="eyebrow">${isUpNext ? `<span class="today-pill">Up Next</span>`:''}</span>
-      <h2>${escapeHtml(d.title)}</h2>
-      <div class="tagline">${escapeHtml(d.tagline)}</div>
       <div class="meta"><span>${escapeHtml(d.subtitle)}</span></div>
       <div class="meta"><span>${done}/${total} exercises logged</span></div>
       <div class="progress-bar"><div class="progress-fill" style="width:${dayPct*100}%"></div></div>
