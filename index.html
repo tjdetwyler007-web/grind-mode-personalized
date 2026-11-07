@@ -1171,6 +1171,9 @@ html[data-theme="dark"] .ex-acc-progress.complete{color:var(--good)}
 .ex-acc.open .ex-acc-chev{transform:rotate(180deg)}
 .ex-acc-body[hidden]{display:none!important}
 .ex-acc-body{margin-top:8px}
+.rep-hints:empty{display:none}
+.rep-hint{margin:6px 0 2px;overflow-wrap:anywhere;font:600 11.5px/1.35 'JetBrains Mono',monospace;color:var(--gm-muted,var(--muted))}
+.rep-hint.rep-hint-live{font-style:italic}
 .status-badge[role="button"]:focus-visible{outline:2px solid var(--gm-accent,var(--gold));outline-offset:2px}
 
 /* ===== Recovery stretches (relocated from the old Recovery tab) ===== */
@@ -1929,6 +1932,7 @@ let plan = null;
 let trackerState = {}, trackerHistory = [], weightLog = [];
 let streakWeeks = 0, streakFreezes = 2, lastFreezeRefillMonth = null;
 let recoveryLog = []; // [{date, level: 'fresh'|'okay'|'wiped'}] -- reflection only, does not change suggested weights (yet)
+let repHistory = {}; // {[exerciseId]: ['top'|'in'|'below'|null, ...]} -- last 4 weekly rep statuses (double progression), oldest first
 let exerciseHistory = {}; // {[exerciseId]: [true, false, ...]} -- one entry per week, "was every occurrence of this exercise fully completed that week", oldest first
 // {'YYYY-MM-DD': count} -- how many individual sets got checked off on that
 // REAL calendar date, independent of which plan-day/week they belonged to.
@@ -2067,7 +2071,7 @@ async function handleSignOut(){
   await sb.auth.signOut();
   currentUser = null; profile = null; plan = null;
   applyPersonaTheme('male');
-  trackerState = {}; trackerHistory = []; weightLog = [];
+  trackerState = {}; trackerHistory = []; weightLog = []; exerciseHistory = {}; repHistory = {};
   resetCoachState();
   resetSessionUiState();
   APP_STATE = 'signin';
@@ -2107,6 +2111,7 @@ async function loadProfileAndData(isRetry){
     lastFreezeRefillMonth = tracker.lastFreezeRefillMonth || null;
     recoveryLog = tracker.recoveryLog || [];
     exerciseHistory = tracker.exerciseHistory || {};
+    repHistory = tracker.repHistory || {};
     dayCompletionLog = tracker.dayCompletionLog || {};
     inboxBackfilledAt = tracker.inboxBackfilledAt || null;
     if(migrateTrackerState()) silentSave();
@@ -2146,7 +2151,7 @@ function saveUserData(){
     const {error} = await sb.from('user_data').upsert({
       id: currentUser.id,
       plan,
-      tracker: {state: trackerState, history: trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog, exerciseHistory, dayCompletionLog, inboxBackfilledAt},
+      tracker: {state: trackerState, history: trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog, exerciseHistory, repHistory, dayCompletionLog, inboxBackfilledAt},
       updated_at: new Date().toISOString(),
     });
     if(error) throw error;
@@ -2225,7 +2230,7 @@ async function confirmDeleteData(){
     try{ await sb.from('inbox_messages').delete().eq('user_id', currentUser.id); }catch(e){ console.warn('Could not clear inbox:', e && e.message); }
     await sb.auth.signOut();
     currentUser = null; profile = null; plan = null;
-    trackerState = {}; trackerHistory = []; weightLog = [];
+    trackerState = {}; trackerHistory = []; weightLog = []; exerciseHistory = {}; repHistory = {};
     resetSessionUiState();
     APP_STATE = 'signin';
     render();
@@ -2245,7 +2250,7 @@ async function confirmPermanentDelete(){
     if(!data || !data.success) throw new Error((data && data.error) || 'Unknown error from delete-account function');
     await sb.auth.signOut();
     currentUser = null; profile = null; plan = null;
-    trackerState = {}; trackerHistory = []; weightLog = [];
+    trackerState = {}; trackerHistory = []; weightLog = []; exerciseHistory = {}; repHistory = {};
     resetSessionUiState();
     APP_STATE = 'signin';
     render();
@@ -2767,10 +2772,10 @@ async function finalizeOnboarding(origin){ // origin: 'sensei' when applying a S
     profile = data;
     applyPersonaTheme();
     plan = newPlan;
-    trackerState = {}; trackerHistory = [];
+    trackerState = {}; trackerHistory = []; exerciseHistory = {}; repHistory = {};
     weightLog = [{date: todayISO(), weight: qAnswers.currentWeight}];
     if(!isRetake){ streakWeeks = 0; streakFreezes = 2; lastFreezeRefillMonth = todayISO().slice(0,7); inboxBackfilledAt = new Date().toISOString(); /* brand-new account: nothing to backfill */ }
-    const {error: dataErr} = await sb.from('user_data').upsert({id: currentUser.id, plan, tracker:{state:trackerState, history:trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog:[], exerciseHistory:{}, dayCompletionLog, inboxBackfilledAt}, updated_at:new Date().toISOString()});
+    const {error: dataErr} = await sb.from('user_data').upsert({id: currentUser.id, plan, tracker:{state:trackerState, history:trackerHistory, weightLog, streakWeeks, streakFreezes, lastFreezeRefillMonth, recoveryLog:[], exerciseHistory:{}, repHistory:{}, dayCompletionLog, inboxBackfilledAt}, updated_at:new Date().toISOString()});
     if(dataErr) throw dataErr;
     activeDay = 1;
     exOpen = {};
@@ -3142,6 +3147,50 @@ function isExerciseDone(ex, s){
 // Pulls the first number out of a rep target like "8-12" or "AMRAP (10+)" to use
 // as a sane default for the actual-reps field -- the lower/first bound, so the
 // prefilled value is always something achievable rather than an optimistic max.
+function lastWeekHintLine(ex){
+  const lw = ex.lastWeek;
+  if(!lw || !ex.repTarget) return '';
+  const unit = (ex.unit||'').startsWith('kg') ? 'kg' : 'lb';
+  const repsTxt = (lw.reps||[]).join('/');
+  const at = (lw.weight && isWeightedUnit(ex.unit)) ? ` @ ${lw.weight} ${unit}` : '';
+  return `<div class="rep-hint" data-rep-hint>Target ${escapeHtml(String(ex.reps))} reps · last week ${escapeHtml(repsTxt)}${at} → aim for ${ex.repTarget}+</div>`;
+}
+// Provisional, display-only hint from THIS week's logged reps (same validity rules and rep-target
+// math as rollover). Derived on every render / input; it never writes to the plan or any history.
+function liveRepHintLine(ex){
+  const range = parseRepRange(ex.reps);
+  if(!range) return '';
+  const weighted = isWeightedUnit(ex.unit);
+  if(!weighted && ex.unit!=='bodyweight') return '';
+  const w = weighted ? parseFloat(ex.weight) : 0;
+  if(weighted && isNaN(w)) return '';
+  const days = plan.days.filter(dd=> dd.exercises.some(e=>e.id===ex.id)).map(dd=>dd.day);
+  const reps = gatherLoggedReps(ex, days, w, range);
+  const status = repStatusFor(reps, range);
+  if(!status) return '';
+  let at = '';
+  if(weighted){
+    const lw = gatherLoggedWorkingWeights(ex, days, w);
+    const L = lw.length ? Math.max(...lw) : w;
+    at = ` @ ${L} ${ex.unit.startsWith('kg') ? 'kg' : 'lb'}`;
+  }
+  const avg = reps.reduce((a,b)=>a+b,0)/reps.length;
+  let verdict;
+  if(status==='top') verdict = weighted ? 'ready to go heavier next week' : `on track to aim for ${range.high+1}+`;
+  else if(status==='in') verdict = `on track to aim for ${Math.min(range.high, Math.max(range.low, Math.floor(avg)+1))}+`;
+  else verdict = weighted ? 'hold weight, build reps' : 'build reps';
+  const prefix = lastWeekHintLine(ex) ? 'So far this week' : `Target ${escapeHtml(String(ex.reps))} reps · so far this week`;
+  return `<div class="rep-hint rep-hint-live" data-rep-live data-rep-live-status="${status}">${prefix} ${escapeHtml(reps.join('/'))}${at} → ${verdict}</div>`;
+}
+function repHintInnerHtml(ex){ return lastWeekHintLine(ex) + liveRepHintLine(ex); }
+function repHintHtml(ex){ return `<div class="rep-hints" data-rep-hints="${escapeAttr(ex.id)}">${repHintInnerHtml(ex)}</div>`; }
+// Live refresh while typing/ticking without re-rendering (keeps focus and the open accordion).
+function refreshRepHints(exId){
+  const box = document.querySelector(`[data-rep-hints="${CSS.escape(exId)}"]`);
+  const d = plan.days.find(x=>x.day===activeDay);
+  const ex = d && d.exercises.find(e=>e.id===exId);
+  if(box && ex) box.innerHTML = repHintInnerHtml(ex);
+}
 function defaultRepsFor(reps){
   const m = String(reps==null?'':reps).match(/\d+/);
   return m ? m[0] : '';
@@ -3274,7 +3323,7 @@ function gatherLoggedWorkingWeights(ex, occurrenceDays, planWeight){
 }
 // Pure decision function (unit-testable): returns {newW, recoveryDriven, usedLogged, topLogged}.
 // newW === null means "leave the plan weight alone".
-function computeProgressionTarget({planWeight, step, loggedWeights, allDone, hist, poorRecovery}){
+function computeWeightOnlyProgression({planWeight, step, loggedWeights, allDone, hist, poorRecovery}){
   const lastTwo = (hist||[]).slice(-2);
   const twoDone = lastTwo.length===2 && lastTwo[0]===true && lastTwo[1]===true;
   const twoMissed = lastTwo.length===2 && lastTwo[0]===false && lastTwo[1]===false;
@@ -3303,10 +3352,99 @@ function computeProgressionTarget({planWeight, step, loggedWeights, allDone, his
   return {newW, recoveryDriven, usedLogged:false, topLogged:null};
 }
 
+/* ---------------- Double progression (reps) ----------------
+   Rep range comes from ex.reps: "8-12" => 8..12, "10" => 10..10, "AMRAP (10+)" / "10+" =>
+   low 10, high 10+REP_OPEN_ENDED_SPAN (an open-ended target has no ceiling, so we assume a
+   4-rep window). Time-based or number-less strings ("30s", "AMRAP") are unparseable => null
+   => the legacy weight-only rules apply. */
+const REP_OPEN_ENDED_SPAN = 4;
+function parseRepRange(reps){
+  const str = String(reps==null?'':reps);
+  if(/\d\s*(s|sec|secs|seconds|min|mins|minutes)\b/i.test(str)) return null;
+  const nums = str.match(/\d+/g);
+  if(!nums) return null;
+  let low, high;
+  const range = str.match(/(\d+)\s*[-\u2013\u2014]\s*(\d+)/);
+  if(range){ low = +range[1]; high = +range[2]; if(high < low){ const t = low; low = high; high = t; } }
+  else if(/amrap|\d\s*\+/i.test(str)){ low = +nums[0]; high = low + REP_OPEN_ENDED_SPAN; }
+  else { low = high = +nums[0]; }
+  if(!(low > 0) || high > 100) return null;
+  return {low, high};
+}
+// Valid reps from CHECKED WORKING sets only (warm-ups live in warmupLogs and are never read).
+// A set whose logged weight is present but out of bounds is skipped; a set with no weight still counts.
+function gatherLoggedReps(ex, occurrenceDays, planWeight, range){
+  const out = [];
+  if(!range) return out;
+  const lo = planWeight * LOGGED_WEIGHT_MIN_RATIO, hi = planWeight * LOGGED_WEIGHT_MAX_RATIO;
+  (occurrenceDays||[]).forEach(day=>{
+    const st = trackerState[trackerKey(day, ex.id)];
+    if(!st || !Array.isArray(st.setsChecked) || !Array.isArray(st.setLogs)) return;
+    st.setsChecked.forEach((checked, i)=>{
+      if(!checked) return;
+      const log = st.setLogs[i]; if(!log) return;
+      const r = Number(String(log.reps==null?'':log.reps).trim());
+      if(!isFinite(r) || r <= 0 || r > 100 || r > 3*range.high) return;
+      if(planWeight > 0 && log.weight!==undefined && String(log.weight).trim()!==''){
+        const w = parseLoggedWeight(log.weight);
+        if(!isNaN(w) && (w <= 0 || w < lo || w > hi) ) return; // implausible weight => don't trust this set's reps
+      }
+      out.push(Math.round(r));
+    });
+  });
+  return out;
+}
+// 'top' = every set >= high; 'below' = MORE THAN HALF of sets < low; else 'in'. No reps => null.
+function repStatusFor(reps, range){
+  if(!range || !reps || reps.length===0) return null;
+  if(reps.every(r=>r >= range.high)) return 'top';
+  if(reps.filter(r=>r < range.low).length > reps.length/2) return 'below';
+  return 'in';
+}
+// Pure decision function (unit-testable). Legacy fields: {newW, recoveryDriven, usedLogged, topLogged};
+// plus {repStatus, repTarget, reason}. newW === null => leave the plan weight alone;
+// repTarget === null => no new rep target (keep/clear is the caller's call).
+// reps/repRange omitted or no valid reps => exactly the legacy weight-only result.
+// adjustWeight:false (bodyweight) => only the rep suggestion, newW is always null.
+function computeProgressionTarget({planWeight, step, loggedWeights, allDone, hist, poorRecovery, reps, repRange, repHist, adjustWeight}){
+  const legacy = ()=>computeWeightOnlyProgression({planWeight, step, loggedWeights, allDone, hist, poorRecovery});
+  const status = repStatusFor(reps, repRange);
+  if(adjustWeight === false){
+    const out = {newW:null, recoveryDriven:false, usedLogged:false, topLogged:null, repStatus:status, repTarget:null, reason:null};
+    if(status && allDone){
+      const avg = reps.reduce((a,b)=>a+b,0)/reps.length;
+      if(status==='top') out.repTarget = repRange.high + 1;
+      else if(status==='in') out.repTarget = Math.min(repRange.high, Math.max(repRange.low, Math.floor(avg)+1));
+      else out.repTarget = repRange.low;
+    }
+    return out;
+  }
+  if(!status){ const r = legacy(); r.repStatus = null; r.repTarget = null; r.reason = null; return r; }
+  if(!allDone){ const r = legacy(); r.repStatus = status; r.repTarget = null; r.reason = null; return r; }
+  const hasW = loggedWeights && loggedWeights.length>0;
+  const L = hasW ? Math.max(...loggedWeights) : planWeight;
+  const prev = (repHist||[]).length ? repHist[repHist.length-1] : null;
+  const avg = reps.reduce((a,b)=>a+b,0)/reps.length;
+  let newW, recoveryDriven = false, repTarget, reason = null;
+  if(status==='top'){
+    if(poorRecovery){ newW = Math.max(step, L-step); recoveryDriven = true; reason = 'recovery'; }
+    else { newW = L + step; reason = 'top'; }
+    repTarget = repRange.low;
+  } else if(status==='in'){
+    newW = L; repTarget = Math.min(repRange.high, Math.max(repRange.low, Math.floor(avg)+1)); reason = 'in';
+  } else {
+    repTarget = repRange.low;
+    if(prev==='below'){ newW = Math.max(step, L-step); reason = 'below2'; }
+    else { newW = L; reason = 'below'; }
+  }
+  return {newW, recoveryDriven, usedLogged:!!hasW, topLogged:hasW?L:null, repStatus:status, repTarget, reason};
+}
+
 function recordAndApplyProgression(weekId){
   const seenIds = new Set();
   const messages = [];
   const recoveryMessages = [];
+  const holdMessages = [];
   const poorRecovery = recoveryIsPoor();
 
   plan.days.forEach(d=>{
@@ -3322,17 +3460,41 @@ function recordAndApplyProgression(weekId){
       exerciseHistory[ex.id].push(allDone);
       if(exerciseHistory[ex.id].length>4) exerciseHistory[ex.id] = exerciseHistory[ex.id].slice(-4);
 
-      if(!isWeightedUnit(ex.unit)) return; // nothing numeric to adjust (bodyweight or cardio)
-      const w = parseFloat(ex.weight);
-      if(isNaN(w)) return;
-      const step = ex.unit.startsWith('kg') ? 2.5 : 5;
-      const logged = gatherLoggedWorkingWeights(ex, occurrenceDays, w);
-      const r = computeProgressionTarget({planWeight:w, step, loggedWeights:logged, allDone, hist:exerciseHistory[ex.id], poorRecovery});
+      const weighted = isWeightedUnit(ex.unit);
+      const isBodyweight = ex.unit==='bodyweight';
+      if(!weighted && !isBodyweight) return; // cardio: nothing numeric to adjust
+      const w = weighted ? parseFloat(ex.weight) : 0;
+      if(weighted && isNaN(w)) return;
+      const step = (ex.unit||'').startsWith('kg') ? 2.5 : 5;
+      const range = parseRepRange(ex.reps);
+      const logged = weighted ? gatherLoggedWorkingWeights(ex, occurrenceDays, w) : [];
+      const repsLogged = gatherLoggedReps(ex, occurrenceDays, weighted ? w : 0, range);
+      const prevRepHist = (repHistory[ex.id]||[]).slice();
+      const r = computeProgressionTarget({planWeight:w, step, loggedWeights:logged, allDone, hist:exerciseHistory[ex.id], poorRecovery, reps:repsLogged, repRange:range, repHist:prevRepHist, adjustWeight:weighted});
+      // Record this week's rep status (null when no usable reps) -- last 4 kept.
+      repHistory[ex.id] = prevRepHist.concat([r.repStatus]).slice(-4);
+      // Rep suggestion stored on the plan exercise (all occurrences share the id).
+      const unitLabel = weighted ? (ex.unit.startsWith('kg') ? 'kg' : 'lb') : '';
+      const lastWeekW = weighted ? (r.topLogged!==null && r.topLogged!==undefined ? r.topLogged : w) : null;
+      plan.days.forEach(dd=> dd.exercises.forEach(e=>{
+        if(e.id!==ex.id) return;
+        if(r.repStatus){
+          e.lastWeek = {weight:lastWeekW, reps:repsLogged.slice(), status:r.repStatus};
+          if(r.repTarget!==null && r.repTarget!==undefined) e.repTarget = r.repTarget;
+        } else { delete e.lastWeek; delete e.repTarget; }
+      }));
+      if(!weighted) return; // bodyweight: rep target only, never touch weight
       const newW = r.newW;
+      const unitTxt = ex.unit.replace(' ea','');
       if(newW!==null && newW!==w){
-        const msg = `${ex.name}: ${w} → ${newW} ${ex.unit.replace(' ea','')}`;
+        let msg = `${ex.name}: ${w} → ${newW} ${unitTxt}`;
+        if(r.reason==='top') msg += ` (hit ${range.high} reps on every set)`;
+        else if(r.reason==='recovery' && r.repStatus) msg += ` (hit ${range.high} reps on every set, eased for recovery)`;
+        else if(r.reason==='below2') msg += ` (reps stayed below ${range.low} two weeks in a row)`;
         if(r.recoveryDriven) recoveryMessages.push(msg); else messages.push(msg);
         plan.days.forEach(dd=> dd.exercises.forEach(e=>{ if(e.id===ex.id) e.weight = String(newW); }));
+      } else if(r.repStatus && allDone && (r.reason==='in' || r.reason==='below')){
+        holdMessages.push(`${ex.name}: holding ${newW!==null?newW:w} ${unitTxt} - aim for ${r.repTarget} reps`);
       }
     });
   });
@@ -3343,6 +3505,10 @@ function recordAndApplyProgression(weekId){
     pendingProgressionToast = `${verb} based on last week: ${messages.slice(0,3).join(', ')}${messages.length>3?'…':''}`;
     addInboxMessage({type:'weight_adjust', title: messages.length===1 ? 'Weight adjusted' : `${messages.length} weights adjusted`,
       body: messages.join('\n'), dedupeKey:`weight-adjust:${wk}`});
+  }
+  if(holdMessages.length>0){
+    // Informational only (no toast): which exercises held their weight and what rep target to aim for.
+    addInboxMessage({type:'weight_adjust', title:'Rep targets for this week', body: holdMessages.join('\n'), dedupeKey:`rep-targets:${wk}`});
   }
   if(recoveryMessages.length>0){
     const verb = recoveryMessages.length===1 ? 'eased' : `eased ${recoveryMessages.length} exercises`;
@@ -3808,6 +3974,10 @@ async function handleSaveEditEx(exId){
   exCrudInFlight = true;
   const previous = {...ex};
   const previousCheckmarks = trackerState[trackerKey(activeDay, ex.id)];
+  const previousRepHist = repHistory[ex.id];
+  if(String(v.reps)!==String(previous.reps) || String(v.weight)!==String(previous.weight) || v.unit!==previous.unit){
+    delete ex.repTarget; delete ex.lastWeek; delete repHistory[ex.id]; // suggestion no longer applies to the edited exercise
+  }
   ex.name = v.name; ex.tag = v.tag; ex.sets = v.sets; ex.reps = v.reps;
   ex.weight = v.weight; ex.unit = v.unit; ex.muscles = v.muscles;
   delete trackerState[trackerKey(activeDay, ex.id)]; // sets count may have changed — drop any stale checkmarks
@@ -3816,6 +3986,7 @@ async function handleSaveEditEx(exId){
   const ok = await saveAll();
   if(!ok){
     Object.assign(ex, previous);
+    if(previousRepHist) repHistory[ex.id] = previousRepHist;
     if(previousCheckmarks) trackerState[trackerKey(activeDay, ex.id)] = previousCheckmarks;
   } else {
     addInboxMessage({type:'plan_change', title:'Exercise edited', body:`${ex.name}: ${ex.sets} sets x ${ex.reps}${ex.unit==='bodyweight'?'':' @ '+ex.weight+' '+ex.unit}.`});
@@ -4155,7 +4326,7 @@ function renderDashboard(){
               ${Array.from({length:ex.sets}).map((_,i)=>{
                 const log = setLogs[i] || {};
                 const logWeight = log.weight!==undefined ? log.weight : ex.weight;
-                const logReps = log.reps!==undefined ? log.reps : defaultRepsFor(ex.reps);
+                const logReps = log.reps!==undefined ? log.reps : (ex.repTarget ? String(ex.repTarget) : defaultRepsFor(ex.reps));
                 return `
               <div class="set-log-row">
                 <div class="set-check ${setsChecked[i]?'checked':''}" data-set="${ex.id}|${i}|${ex.sets}">
@@ -4194,6 +4365,7 @@ function renderDashboard(){
         </div>
         <div class="ex-acc-body" id="${escapeAttr(bodyId)}" role="region" aria-labelledby="${escapeAttr(headId)}" ${isOpen?'':'hidden'}>
         <div class="ex-muscles"><b>Targets:</b> ${escapeHtml(ex.muscles)}</div>
+        ${repHintHtml(ex)}
         <div class="ex-inputs">
           <div class="field"><label>Suggested weight</label><div class="weight-label">${ex.weight}<span class="unit">${ex.unit}</span></div></div>
           <div class="field full">
@@ -4251,10 +4423,10 @@ function renderDashboard(){
     el.onclick = ()=>{ const [exId,idx,tot] = el.dataset.warmupSet.split('|'); toggleWarmupSet(activeDay, exId, parseInt(idx,10), parseInt(tot,10)); };
   });
   document.querySelectorAll('[data-log-weight]').forEach(el=>{
-    el.oninput = ()=>{ const [exId,idx] = el.dataset.logWeight.split('|'); logSetInput(activeDay, exId, parseInt(idx,10), 'weight', el.value, false); };
+    el.oninput = ()=>{ const [exId,idx] = el.dataset.logWeight.split('|'); logSetInput(activeDay, exId, parseInt(idx,10), 'weight', el.value, false); refreshRepHints(exId); };
   });
   document.querySelectorAll('[data-log-reps]').forEach(el=>{
-    el.oninput = ()=>{ const [exId,idx] = el.dataset.logReps.split('|'); logSetInput(activeDay, exId, parseInt(idx,10), 'reps', el.value, false); };
+    el.oninput = ()=>{ const [exId,idx] = el.dataset.logReps.split('|'); logSetInput(activeDay, exId, parseInt(idx,10), 'reps', el.value, false); refreshRepHints(exId); };
   });
   document.querySelectorAll('[data-warmup-weight]').forEach(el=>{
     el.oninput = ()=>{ const [exId,idx] = el.dataset.warmupWeight.split('|'); logSetInput(activeDay, exId, parseInt(idx,10), 'weight', el.value, true); };
