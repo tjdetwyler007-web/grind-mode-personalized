@@ -1172,6 +1172,11 @@ html[data-theme="dark"] .ex-acc-progress.complete{color:var(--good)}
 .ex-acc-body[hidden]{display:none!important}
 .ex-acc-body{margin-top:8px}
 .rep-hints:empty{display:none}
+.coach-header-actions{display:flex;align-items:center;gap:8px}
+.coach-clear-btn,.coach-clear-confirm button{appearance:none;border:1px solid var(--gm-line,var(--line));background:transparent;color:var(--gm-muted,var(--muted));font:600 11px/1 'JetBrains Mono',monospace;padding:7px 10px;border-radius:999px;cursor:pointer}
+.coach-clear-confirm{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:10px 12px;border:1px solid var(--gm-line,var(--line));border-radius:12px;font:600 12px/1.3 'JetBrains Mono',monospace;color:var(--gm-text,var(--ink))}
+.coach-clear-confirm-btns{display:inline-flex;gap:6px}
+.coach-clear-confirm #coachClearYes{color:#fff;background:#c0392b;border-color:#c0392b}
 .rep-hint{margin:6px 0 2px;overflow-wrap:anywhere;font:600 11.5px/1.35 'JetBrains Mono',monospace;color:var(--gm-muted,var(--muted))}
 .rep-hint.rep-hint-live{font-style:italic}
 .status-badge[role="button"]:focus-visible{outline:2px solid var(--gm-accent,var(--gold));outline-offset:2px}
@@ -1959,10 +1964,13 @@ let chatMessages = [], chatPlanProposal = null, chatSending = false, chatError =
 // Separate state for the in-app coach -- a distinct, persisted conversation
 // from the onboarding chat above, not the same one continuing.
 let coachMessages = [], coachSending = false, coachError = null, coachPlanProposal = null, coachExercisesProposal = null;
-// Sensei always starts blank on app open / sign-in / sign-out. The conversation lives only in
-// memory for the current session (switching tabs and coming back keeps it).
-let coachEpoch = 0;
-function resetCoachState(){ coachEpoch++; coachMessages = []; coachSending = false; coachError = null; coachPlanProposal = null; coachExercisesProposal = null; }
+// Sensei conversations are stored in coach_messages and shown again for COACH_HISTORY_HOURS.
+// Older rows stay in the table (never deleted automatically) but are neither shown nor sent to the model.
+// The in-memory conversation also persists across tab switches within a session.
+const COACH_HISTORY_HOURS = 12;
+const COACH_SEND_CAP = 30; // most recent messages handed to plan-chat (the UI shows the whole window)
+let coachEpoch = 0, coachHistoryLoaded = false, coachHistoryLoading = false, coachClearConfirm = false;
+function resetCoachState(){ coachEpoch++; coachMessages = []; coachSending = false; coachError = null; coachPlanProposal = null; coachExercisesProposal = null; coachHistoryLoaded = false; coachHistoryLoading = false; coachClearConfirm = false; }
 let activeDay = 1;
 let pendingEmail = '';
 let saveStatus = 'idle', lastSavedAt = null;
@@ -2067,7 +2075,7 @@ async function handleUpdatePassword(newPw, confirmPw){
 }
 
 async function handleSignOut(){
-  // Existing coach_messages rows are deliberately left untouched (and never read back).
+  // coach_messages rows are left in place; the next sign-in only shows the last COACH_HISTORY_HOURS of them.
   await sb.auth.signOut();
   currentUser = null; profile = null; plan = null;
   applyPersonaTheme('male');
@@ -2125,6 +2133,7 @@ async function loadProfileAndData(isRetry){
     handleWeekRollover();
     APP_STATE = 'dashboard';
     render();
+    loadCoachHistory(); // fire-and-forget prefetch; failures just leave the chat empty (retried when Sensei opens)
   }catch(e){
     // A momentary blip here previously dumped an already-signed-in person
     // straight to a sign-in FORM, which is a strange place to land right
@@ -2529,11 +2538,71 @@ async function buildPlanFromChat(){
 
 /* ============================== IN-APP COACH (ongoing, signed-in, separate from onboarding) ============================== */
 function openCoachChat(){
-  // Opening Sensei never loads past conversations: the chat is blank on every fresh app open.
-  // Messages already exchanged in THIS session are kept so tab switches don't lose them.
+  // Messages from this session are kept across tab switches; the stored last-12h history is loaded once per session.
   APP_STATE = 'coach';
-  coachSending = false; coachError = null; coachPlanProposal = null; coachExercisesProposal = null;
+  coachSending = false; coachError = null; coachPlanProposal = null; coachExercisesProposal = null; coachClearConfirm = false;
   render();
+  if(!coachHistoryLoaded && !coachHistoryLoading) loadCoachHistory();
+}
+
+const coachMsgKey = (m)=>`${m.role}|${m.content}|${m.at ? new Date(m.at).getTime() : ''}`;
+async function loadCoachHistory(){
+  if(!currentUser || coachHistoryLoading || coachHistoryLoaded) return;
+  const epoch = coachEpoch, uid = currentUser.id;
+  coachHistoryLoading = true;
+  let rows = null;
+  try{
+    const cutoff = new Date(Date.now() - COACH_HISTORY_HOURS*3600*1000).toISOString();
+    const {data, error} = await sb.from('coach_messages').select('*').eq('user_id', uid).gte('created_at', cutoff).order('created_at', {ascending:true});
+    if(error) throw error;
+    rows = data || [];
+  }catch(e){
+    console.warn('Could not load coach history:', e && e.message);
+  }
+  if(epoch !== coachEpoch || !currentUser || currentUser.id !== uid) return; // signed out / switched user / cleared meanwhile: discard
+  coachHistoryLoading = false;
+  if(rows === null) return; // failed: empty chat for now, retried on the next open
+  coachHistoryLoaded = true;
+  const cutoffMs = Date.now() - COACH_HISTORY_HOURS*3600*1000;
+  const mine = new Set(coachMessages.map(coachMsgKey)); // messages already sent this session (saved rows can come back too)
+  const loaded = rows
+    .filter(r=> r && r.user_id===uid && (r.role==='user'||r.role==='assistant') && typeof r.content==='string' && r.content && new Date(r.created_at).getTime() >= cutoffMs)
+    .map(r=>({role:r.role, content:r.content, at:r.created_at}))
+    .filter(m=>!mine.has(coachMsgKey(m)));
+  if(loaded.length === 0) return;
+  coachMessages = loaded.concat(coachMessages);
+  if(APP_STATE==='coach'){
+    // Re-render without eating what the person is typing.
+    const inp = document.getElementById('chatInput');
+    const typed = inp ? inp.value : '', hadFocus = !!inp && document.activeElement===inp;
+    renderCoach();
+    const inp2 = document.getElementById('chatInput');
+    if(inp2 && typed){ inp2.value = typed; if(hadFocus) inp2.focus({preventScroll:true}); }
+  }
+}
+
+// Best-effort and fire-and-forget: a failed save never breaks the chat. Only real user/assistant
+// messages are stored -- never error or placeholder bubbles.
+async function saveCoachMessage(role, content, at){
+  try{
+    if(!currentUser) return;
+    const {error} = await sb.from('coach_messages').insert({user_id: currentUser.id, role, content, created_at: at});
+    if(error) throw error;
+  }catch(e){ console.warn('Could not save coach message:', e && e.message); }
+}
+
+async function clearCoachChat(){
+  const epoch = ++coachEpoch; // discards any in-flight reply / history load
+  coachSending = false; coachHistoryLoading = false; coachClearConfirm = false;
+  try{
+    const {error} = await sb.from('coach_messages').delete().eq('user_id', currentUser.id);
+    if(error) throw error;
+    coachMessages = []; coachPlanProposal = null; coachExercisesProposal = null; coachError = null; coachHistoryLoaded = true;
+  }catch(e){
+    console.warn('Could not clear coach chat:', e && e.message);
+    coachError = "Couldn't clear the chat. Please try again.";
+  }
+  if(APP_STATE==='coach') renderCoach();
 }
 
 function closeCoach(){
@@ -2549,8 +2618,12 @@ function renderCoach(){
     <div class="chat-wrap">
       <div class="chat-header">
         <h2>SENSEI</h2>
-        <button class="q-exit-btn" id="coachCloseBtn" title="Back to dashboard" style="position:static;">✕</button>
+        <div class="coach-header-actions">
+          <button type="button" class="coach-clear-btn" id="coachClearBtn" ${coachClearConfirm?'aria-expanded="true"':''}>Clear chat</button>
+          <button class="q-exit-btn" id="coachCloseBtn" title="Back to dashboard" style="position:static;">✕</button>
+        </div>
       </div>
+      ${coachClearConfirm ? `<div class="coach-clear-confirm" role="alertdialog" aria-label="Confirm clearing chat"><span>Delete your whole Sensei chat history?</span><span class="coach-clear-confirm-btns"><button type="button" id="coachClearYes">Delete</button><button type="button" id="coachClearNo">Cancel</button></span></div>` : ''}
       <div class="sensei-hero"><div class="sensei-copy"><h2>YOUR SENSEI</h2><p>${personaFemale?'Strength · confidence · consistency':'Discipline · strength · progress'}</p></div></div>
       ${coachMessages.length===0 && !coachPlanProposal && !coachExercisesProposal ? `<div class="sensei-quick"><button data-sensei-prompt="${sportPrompt}">${sportPrompt}</button><button data-sensei-prompt="Adjust my workout plan">Adjust my plan</button><button data-sensei-prompt="I feel tired this week. How should I train?">Recovery advice</button><button data-sensei-prompt="Give me meal ideas that fit my goals">Meal ideas</button></div>` : ''}
       <div class="chat-log" id="chatLog">
@@ -2600,6 +2673,9 @@ function renderCoach(){
     }
   }
   document.getElementById('coachCloseBtn').onclick = closeCoach;
+  const clrBtn = document.getElementById('coachClearBtn'); if(clrBtn) clrBtn.onclick = ()=>{ coachClearConfirm = true; renderCoach(); };
+  const clrYes = document.getElementById('coachClearYes'); if(clrYes) clrYes.onclick = clearCoachChat;
+  const clrNo = document.getElementById('coachClearNo'); if(clrNo) clrNo.onclick = ()=>{ coachClearConfirm = false; renderCoach(); };
   if(coachPlanProposal){
     document.getElementById('applyCoachProposal').onclick = applyCoachPlanProposal;
   } else if(coachExercisesProposal){
@@ -2654,19 +2730,23 @@ function coachContext(){
 
 async function sendCoachMessage(text){
   const epoch = coachEpoch;
-  coachMessages.push({role:'user', content:text});
+  const userAt = new Date().toISOString();
+  coachMessages.push({role:'user', content:text, at:userAt});
   coachSending = true; coachError = null;
   renderCoach();
+  saveCoachMessage('user', text, userAt); // fire-and-forget
   try{
     // existingProfile carries the person's real, current data -- this is
     // what lets the SAME function that ran onboarding now give genuinely
     // personalized answers ("you've hit every set this week") instead of
     // generic ones, and lets it propose a PARTIAL update instead of
     // requiring the whole profile to be restated.
-    const data = await invokeFunction('plan-chat', { body: { messages: coachMessages, existingProfile: coachContext() } });
+    const data = await invokeFunction('plan-chat', { body: { messages: coachMessages.slice(-COACH_SEND_CAP).map(m=>({role:m.role, content:m.content})), existingProfile: coachContext() } });
     if(epoch !== coachEpoch) return; // signed out / new session meanwhile: drop the reply
     if(!data || !data.reply) throw new Error((data && data.error) || 'No reply from the coach');
-    coachMessages.push({role:'assistant', content:data.reply});
+    const replyAt = new Date().toISOString();
+    coachMessages.push({role:'assistant', content:data.reply, at:replyAt});
+    saveCoachMessage('assistant', data.reply, replyAt);
     if(data.planProposal) coachPlanProposal = data.planProposal;
     if(data.exercisesProposal) coachExercisesProposal = data.exercisesProposal;
   }catch(e){
