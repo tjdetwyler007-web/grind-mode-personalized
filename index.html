@@ -1507,7 +1507,9 @@ const EX = [
   {id:'seated_ohp', name:'Seated Barbell Overhead Press', muscle:'shoulders', compound:true, equipment:['barbell','bench'], seed:90, unit:'lbs', bwScaled:true, joints:['shoulder'], desc:'Anterior and medial deltoid heads, with triceps and upper traps stabilizing overhead.'},
   {id:'db_shoulder_press', name:'Seated Dumbbell Shoulder Press', muscle:'shoulders', compound:true, equipment:['dumbbell','bench'], seed:35, unit:'lbs ea', bwScaled:true, joints:['shoulder'], desc:'Builds pressing strength through a longer, more natural range of motion than a barbell press.'},
   {id:'lateral_raise', name:'Dumbbell Lateral Raise', muscle:'shoulders', compound:false, equipment:['dumbbell'], seed:15, unit:'lbs ea', bwScaled:false, joints:[], desc:'Isolates the medial (side) deltoid head to build shoulder width.'},
-  {id:'rear_delt_flye', name:'Rear Delt Flyes', muscle:'shoulders', compound:false, equipment:['dumbbell'], seed:12, unit:'lbs ea', bwScaled:false, joints:[], desc:'Posterior deltoid and rhomboids/mid-traps, improving shoulder balance and posture.'},
+  {id:'rear_delt_flye', name:'Rear Delt Flyes', muscle:'shoulders', pattern:'pull', compound:false, equipment:['dumbbell'], seed:12, unit:'lbs ea', bwScaled:false, joints:[], desc:'Posterior deltoid and rhomboids/mid-traps, improving shoulder balance and posture.'},
+  {id:'front_raise', name:'Dumbbell Front Raise', muscle:'shoulders', compound:false, equipment:['dumbbell'], seed:12, unit:'lbs ea', bwScaled:false, joints:['shoulder'], desc:'Isolates the anterior deltoid with a controlled raise to eye level.'},
+  {id:'cable_lateral_raise', name:'Cable Lateral Raise', muscle:'shoulders', compound:false, equipment:['cable'], seed:10, unit:'lbs', bwScaled:false, joints:[], desc:'Constant-tension medial deltoid work that builds shoulder width through the whole range.'},
   {id:'pike_pushup', name:'Pike Push-Up', muscle:'shoulders', compound:true, equipment:['bodyweight'], seed:0, unit:'bodyweight', bwScaled:false, joints:['shoulder','wrist'], desc:'A bodyweight vertical press that builds shoulder pressing strength without equipment.'},
   // TRICEPS
   {id:'cable_pushdown', name:'Cable Tricep Pushdown', muscle:'triceps', compound:false, equipment:['cable'], seed:60, unit:'lbs', bwScaled:false, joints:[], desc:'All three heads of the triceps, with emphasis on the lateral and long heads.'},
@@ -1706,30 +1708,30 @@ const CARDIO_DURATION = {
 /* ============================== SPLIT TEMPLATES ============================== */
 const TEMPLATES = {
   3: [
-    {title:'Full Body A', tagline:'FOUNDATION DAY', accent:'push', targets:[['quads','compound'],['chest','compound'],['back','compound'],['shoulders','isolation'],['abs','isolation']]},
-    {title:'Full Body B', tagline:'POSTERIOR POWER', accent:'pull', targets:[['hamstrings','compound'],['back','compound'],['shoulders','compound'],['biceps','isolation'],['obliques','isolation']]},
-    {title:'Full Body C', tagline:'TOTAL RESET', accent:'legs', targets:[['quads','compound'],['chest','compound'],['back','compound'],['triceps','isolation'],['calves','isolation']]},
+    {title:'Full Body A', type:'FULL', tagline:'FOUNDATION DAY', accent:'push', targets:[['quads','compound'],['chest','compound'],['back','compound'],['shoulders','isolation'],['abs','isolation']]},
+    {title:'Full Body B', type:'FULL', tagline:'POSTERIOR POWER', accent:'pull', targets:[['hamstrings','compound'],['back','compound'],['shoulders','compound'],['biceps','isolation'],['obliques','isolation']]},
+    {title:'Full Body C', type:'FULL', tagline:'TOTAL RESET', accent:'legs', targets:[['quads','compound'],['chest','compound'],['back','compound'],['triceps','isolation'],['calves','isolation']]},
   ],
   4: [
-    {title:'Upper A', tagline:'PUSH THE LIMIT', accent:'push', targets:[['chest','compound'],['back','compound'],['shoulders','compound'],['triceps','isolation'],['biceps','isolation']]},
-    {title:'Lower A', tagline:'LEG FOUNDATION', accent:'legs', targets:[['quads','compound'],['hamstrings','compound'],['glutes','isolation'],['calves','isolation'],['abs','isolation']]},
-    {title:'Upper B', tagline:'PUMP & CHASE', accent:'pull', targets:[['back','compound'],['chest','compound'],['shoulders','isolation'],['biceps','isolation'],['triceps','isolation']]},
-    {title:'Lower B', tagline:'POSTERIOR CHAIN', accent:'legs', targets:[['hamstrings','compound'],['quads','compound'],['glutes','compound'],['calves','isolation'],['obliques','isolation']]},
+    {title:'Upper A', type:'UPPER', tagline:'PUSH THE LIMIT', accent:'push', targets:[['chest','compound'],['back','compound'],['shoulders','compound'],['triceps','isolation'],['biceps','isolation']]},
+    {title:'Lower A', type:'LOWER', tagline:'LEG FOUNDATION', accent:'legs', targets:[['quads','compound'],['hamstrings','compound'],['glutes','isolation'],['calves','isolation'],['abs','isolation']]},
+    {title:'Upper B', type:'UPPER', tagline:'PUMP & CHASE', accent:'pull', targets:[['back','compound'],['chest','compound'],['shoulders','isolation'],['biceps','isolation'],['triceps','isolation']]},
+    {title:'Lower B', type:'LOWER', tagline:'POSTERIOR CHAIN', accent:'legs', targets:[['hamstrings','compound'],['quads','compound'],['glutes','compound'],['calves','isolation'],['obliques','isolation']]},
   ],
   5: [
-    {title:'Upper', tagline:'FULL UPPER SWEEP', accent:'push', targets:[['chest','compound'],['back','compound'],['shoulders','compound'],['biceps','isolation'],['triceps','isolation']]},
-    {title:'Lower', tagline:'LEG DAY ONE', accent:'legs', targets:[['quads','compound'],['hamstrings','compound'],['glutes','isolation'],['calves','isolation']]},
-    {title:'Push Day', tagline:'BEAST MODE: ACTIVATED', accent:'push', targets:[['chest','compound'],['shoulders','compound'],['chest','isolation'],['triceps','isolation'],['abs','isolation']]},
-    {title:'Pull Day', tagline:'PULL YOUR WEIGHT', accent:'pull', targets:[['back','compound'],['back','compound'],['biceps','isolation'],['forearms','isolation'],['obliques','isolation']]},
-    {title:'Legs Day', tagline:'NEVER SKIP LEG DAY', accent:'legs', targets:[['quads','compound'],['hamstrings','compound'],['glutes','compound'],['calves','isolation'],['abs','isolation']]},
+    {title:'Upper', type:'UPPER', tagline:'FULL UPPER SWEEP', accent:'push', targets:[['chest','compound'],['back','compound'],['shoulders','compound'],['biceps','isolation'],['triceps','isolation']]},
+    {title:'Lower', type:'LOWER', tagline:'LEG DAY ONE', accent:'legs', targets:[['quads','compound'],['hamstrings','compound'],['glutes','isolation'],['calves','isolation']]},
+    {title:'Push Day', type:'PUSH', tagline:'BEAST MODE: ACTIVATED', accent:'push', targets:[['chest','compound'],['shoulders','compound'],['chest','isolation'],['triceps','isolation'],['abs','isolation']]},
+    {title:'Pull Day', type:'PULL', tagline:'PULL YOUR WEIGHT', accent:'pull', targets:[['back','compound'],['back','compound'],['biceps','isolation'],['forearms','isolation'],['obliques','isolation']]},
+    {title:'Legs Day', type:'LEGS', tagline:'NEVER SKIP LEG DAY', accent:'legs', targets:[['quads','compound'],['hamstrings','compound'],['glutes','compound'],['calves','isolation'],['abs','isolation']]},
   ],
   6: [
-    {title:'Push Day', tagline:'BEAST MODE: ACTIVATED', accent:'push', targets:[['chest','compound'],['chest','compound'],['shoulders','compound'],['shoulders','isolation'],['triceps','isolation'],['triceps','isolation']]},
-    {title:'Pull Day', tagline:'PULL YOUR WEIGHT', accent:'pull', targets:[['back','compound'],['back','compound'],['back','compound'],['biceps','isolation'],['biceps','isolation'],['forearms','isolation'],['abs','isolation']]},
-    {title:'Leg Day', tagline:'NEVER SKIP LEG DAY', accent:'legs', targets:[['quads','compound'],['quads','compound'],['hamstrings','compound'],['hamstrings','isolation'],['calves','isolation'],['obliques','isolation']]},
-    {title:'Push Day', tagline:'BEAST MODE: ACTIVATED', accent:'push', targets:[['chest','compound'],['chest','isolation'],['shoulders','isolation'],['shoulders','isolation'],['triceps','compound'],['triceps','isolation']]},
-    {title:'Pull Day', tagline:'PULL YOUR WEIGHT', accent:'pull', targets:[['back','compound'],['back','compound'],['back','compound'],['biceps','isolation'],['biceps','isolation'],['traps','isolation'],['obliques','isolation']]},
-    {title:'Leg Day', tagline:'NEVER SKIP LEG DAY', accent:'legs', targets:[['quads','compound'],['quads','isolation'],['hamstrings','isolation'],['calves','isolation'],['abductors','isolation']]},
+    {title:'Push Day', type:'PUSH', tagline:'BEAST MODE: ACTIVATED', accent:'push', targets:[['chest','compound'],['chest','compound'],['shoulders','compound'],['shoulders','isolation'],['triceps','isolation'],['triceps','isolation']]},
+    {title:'Pull Day', type:'PULL', tagline:'PULL YOUR WEIGHT', accent:'pull', targets:[['back','compound'],['back','compound'],['back','compound'],['biceps','isolation'],['biceps','isolation'],['forearms','isolation'],['abs','isolation']]},
+    {title:'Leg Day', type:'LEGS', tagline:'NEVER SKIP LEG DAY', accent:'legs', targets:[['quads','compound'],['quads','compound'],['hamstrings','compound'],['hamstrings','isolation'],['calves','isolation'],['obliques','isolation']]},
+    {title:'Push Day', type:'PUSH', tagline:'BEAST MODE: ACTIVATED', accent:'push', targets:[['chest','compound'],['chest','isolation'],['shoulders','isolation'],['shoulders','isolation'],['triceps','compound'],['triceps','isolation']]},
+    {title:'Pull Day', type:'PULL', tagline:'PULL YOUR WEIGHT', accent:'pull', targets:[['back','compound'],['back','compound'],['back','compound'],['biceps','isolation'],['biceps','isolation'],['traps','isolation'],['shoulders','isolation','pull','obliques']]},
+    {title:'Leg Day', type:'LEGS', tagline:'NEVER SKIP LEG DAY', accent:'legs', targets:[['quads','compound'],['quads','isolation'],['hamstrings','isolation'],['calves','isolation'],['abductors','isolation']]},
   ],
 };
 
@@ -1776,9 +1778,12 @@ function buildPool(profile){
   return EX.filter(e=> equipmentAllowed(e, profile.equipment) && jointOk(e, profile.avoid||[]));
 }
 
-function pickExercise(pool, usedIds, muscle, need){
-  let cands = pool.filter(e=> e.muscle===muscle && !usedIds.has(e.id) && e.compound===(need==='compound'));
-  if(cands.length===0) cands = pool.filter(e=> e.muscle===muscle && !usedIds.has(e.id));
+// `want` ('pull'|'push'|undefined) requires a movement pattern; `ban` excludes one.
+// Dedicated Push days ban 'pull' movements (e.g. Rear Delt Flyes) and Pull days ban 'push'.
+function pickExercise(pool, usedIds, muscle, need, want, ban){
+  const okPattern = (e)=> (!want || e.pattern===want) && (!ban || e.pattern!==ban);
+  let cands = pool.filter(e=> e.muscle===muscle && !usedIds.has(e.id) && okPattern(e) && e.compound===(need==='compound'));
+  if(cands.length===0) cands = pool.filter(e=> e.muscle===muscle && !usedIds.has(e.id) && okPattern(e));
   if(cands.length===0) return null;
   // Pick randomly among equally-good candidates rather than always the first
   // in the array -- otherwise every user with the same answers (and every
@@ -1840,18 +1845,38 @@ function addCardioToPlan(days, profile, pool){
 function buildDay(template, pool, dayNum, profile){
   const usedIds = new Set();
   const picked = [];
-  template.targets.forEach(([muscle, need])=>{
-    const ex = pickExercise(pool, usedIds, muscle, need);
+  const ban = template.type==='PUSH' ? 'pull' : template.type==='PULL' ? 'push' : undefined;
+  template.targets.forEach(([muscle, need, want, fallbackMuscle])=>{
+    let ex = pickExercise(pool, usedIds, muscle, need, want, ban);
+    if(!ex && fallbackMuscle) ex = pickExercise(pool, usedIds, fallbackMuscle, need, undefined, ban);
     if(ex){ usedIds.add(ex.id); picked.push(ex); }
   });
   const cap = EXP_CAP[profile.experience] || 6;
   const finalPicks = picked.slice(0, cap);
   const uniqueTags = [...new Set(finalPicks.map(e=>MUSCLE_LABEL[e.muscle]||e.muscle))];
   return {
-    day: dayNum, split: template.accent, title: template.title,
+    day: dayNum, split: template.accent, dayType: template.type, title: template.title,
     subtitle: uniqueTags.join(' · '), tagline: template.tagline,
     exercises: finalPicks.map(e=>materialize(e, profile)),
   };
+}
+
+/* Display label for day tabs: FULL / UPPER / LOWER / PUSH / PULL / LEGS. `split` stays the colour accent. */
+const DAYTYPE_BY_TITLE = [[/^full body/i,'FULL'],[/^upper/i,'UPPER'],[/^lower/i,'LOWER'],[/^push/i,'PUSH'],[/^pull/i,'PULL'],[/^leg/i,'LEGS']];
+function deriveDayType(d){
+  const t = (d && d.title || '').trim();
+  const hit = DAYTYPE_BY_TITLE.find(([re])=>re.test(t));
+  return hit ? hit[1] : String((d && d.split) || '').toUpperCase();
+}
+function dayTypeOf(d){ return (d && d.dayType) || deriveDayType(d); }
+// Idempotent: only fills a missing dayType, never touches exercises, ids or tracker state, and never
+// re-derives a label that is already stored (so a later rename keeps its label). Runs in memory on
+// load; it is persisted by the next ordinary save, so no extra write is needed.
+function migrateDayTypes(p){
+  if(!p || !Array.isArray(p.days)) return false;
+  let changed = false;
+  p.days.forEach(d=>{ if(d && !d.dayType){ d.dayType = deriveDayType(d); changed = true; } });
+  return changed;
 }
 
 function generatePlan(profile){
@@ -2133,6 +2158,7 @@ async function loadProfileAndData(isRetry){
     const {data: dataRow, error: dataErr} = await sb.from('user_data').select('*').eq('id', currentUser.id).maybeSingle();
     if(dataErr) throw dataErr;
     plan = (dataRow && dataRow.plan) ? dataRow.plan : generatePlan(profileToGenInput(profile));
+    migrateDayTypes(plan);
     const tracker = (dataRow && dataRow.tracker) ? dataRow.tracker : {state:{}, history:[], weightLog:[]};
     trackerState = tracker.state || {};
     trackerHistory = tracker.history || [];
@@ -4546,7 +4572,7 @@ function renderDashboard(){
       btn.dataset.split = dd.split;
       btn.style.setProperty('--accent', `var(--${dd.split})`);
       const flag = dd.day===upNext ? `<span class="today-flag">Up Next</span>` : '';
-      btn.innerHTML = `${flag}<span class="dnum">${dd.day}</span><span class="dsplit">${dd.split}</span><span class="dot"></span>`;
+      btn.innerHTML = `${flag}<span class="dnum">${dd.day}</span><span class="dsplit">${escapeHtml(dayTypeOf(dd))}</span><span class="dot"></span>`;
       btn.onclick = ()=> goToDay(dd.day);
       tabsWrap.appendChild(btn);
     });
